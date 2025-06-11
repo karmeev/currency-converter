@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Currency.Infrastructure\Currency.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\Currency.Infrastructure\Currency.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>

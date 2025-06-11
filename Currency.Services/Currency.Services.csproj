@@ -7,16 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Currency.Infrastructure.Contracts\Currency.Infrastructure.Contracts.csproj" />
-      <ProjectReference Include="..\Currency.Services.Contracts\Currency.Services.Contracts.csproj" />
+        <ProjectReference Include="..\Currency.Infrastructure.Contracts\Currency.Infrastructure.Contracts.csproj"/>
+        <ProjectReference Include="..\Currency.Services.Contracts\Currency.Services.Contracts.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Domain\" />
+        <Folder Include="Domain\"/>
     </ItemGroup>
 
 </Project>

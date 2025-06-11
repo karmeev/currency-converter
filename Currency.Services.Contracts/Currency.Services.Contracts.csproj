@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Currency.Data.Contracts\Currency.Data.Contracts.csproj" />
-      <ProjectReference Include="..\Currency.Domain\Currency.Domain.csproj" />
+        <ProjectReference Include="..\Currency.Data.Contracts\Currency.Data.Contracts.csproj"/>
+        <ProjectReference Include="..\Currency.Domain\Currency.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Domain\" />
+        <Folder Include="Domain\"/>
     </ItemGroup>
 
 </Project>

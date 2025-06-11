@@ -8,28 +8,28 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
-        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
+        <PackageReference Include="Asp.Versioning.Http" Version="8.1.0"/>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-      <Content Update="appsettings.Development.json" CopyToOutputDirectory="Always"/>
-      <Content Update="appsettings.Production.json" CopyToOutputDirectory="Always"/>
-      <Content Update="appsettings.Test.json" CopyToOutputDirectory="Always"/>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+        <Content Update="appsettings.Development.json" CopyToOutputDirectory="Always"/>
+        <Content Update="appsettings.Production.json" CopyToOutputDirectory="Always"/>
+        <Content Update="appsettings.Test.json" CopyToOutputDirectory="Always"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Currency.Data\Currency.Data.csproj" />
-      <ProjectReference Include="..\Currency.Facades.Contracts\Currency.Facades.Contracts.csproj" />
-      <ProjectReference Include="..\Currency.Facades\Currency.Facades.csproj" />
-      <ProjectReference Include="..\Currency.Infrastructure\Currency.Infrastructure.csproj" />
-      <ProjectReference Include="..\Currency.Services\Currency.Services.csproj" />
+        <ProjectReference Include="..\Currency.Data\Currency.Data.csproj"/>
+        <ProjectReference Include="..\Currency.Facades.Contracts\Currency.Facades.Contracts.csproj"/>
+        <ProjectReference Include="..\Currency.Facades\Currency.Facades.csproj"/>
+        <ProjectReference Include="..\Currency.Infrastructure\Currency.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Currency.Services\Currency.Services.csproj"/>
     </ItemGroup>
 
 </Project>
