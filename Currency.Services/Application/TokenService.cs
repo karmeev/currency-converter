@@ -11,7 +11,7 @@ namespace Currency.Services.Application;
 internal class TokenService(
     ServicesSettings settings,
     IJwtTokenGenerator tokenGenerator,
-    IAuthRepository authRepository): ITokenService
+    IAuthRepository authRepository) : ITokenService
 {
     public (Tokens, IEnumerable<Claim>) GenerateTokens(User user)
     {
@@ -29,10 +29,10 @@ internal class TokenService(
 
     public (AccessToken, IEnumerable<Claim>) GenerateAccessToken(User user)
     {
-        var claims = tokenGenerator.BuildClaims(identifier: user.Id, 
-            username: user.Username, role: user.Role);
+        var claims = tokenGenerator.BuildClaims(user.Id,
+            user.Username, user.Role);
         var accessToken = tokenGenerator.CreateAccessToken(claims);
-        
+
         return (accessToken, claims);
     }
 

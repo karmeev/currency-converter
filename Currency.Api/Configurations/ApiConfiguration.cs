@@ -15,7 +15,7 @@ public static class ApiConfiguration
             .AddJsonFile($"appsettings.{env}.json", false, true)
             .AddEnvironmentVariables()
             .Build();
-        
+
         configurationManager.AddConfiguration(configurationRoot);
         try
         {
@@ -27,7 +27,7 @@ public static class ApiConfiguration
             return StartupException.ThrowIfConfigurationIncorrect<ApiSettings>();
         }
     }
-    
+
     public static void ConfigureVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(options =>
@@ -53,13 +53,14 @@ public static class ApiConfiguration
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(GetClient(httpContext), _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = settings.PermitLimit,
-                    Window = TimeSpan.FromMilliseconds(settings.DurationMilliseconds),
-                    QueueProcessingOrder = settings.QueueOrder,
-                    QueueLimit = settings.QueueLimit
-                });
+                return RateLimitPartition.GetFixedWindowLimiter(GetClient(httpContext), _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = settings.PermitLimit,
+                        Window = TimeSpan.FromMilliseconds(settings.DurationMilliseconds),
+                        QueueProcessingOrder = settings.QueueOrder,
+                        QueueLimit = settings.QueueLimit
+                    });
             });
 
             options.RejectionStatusCode = 429;

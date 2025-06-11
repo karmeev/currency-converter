@@ -3,15 +3,14 @@ using Currency.Infrastructure.Contracts.Auth;
 
 namespace Currency.Infrastructure.Auth;
 
-internal class SecretHasher: ISecretHasher
+internal class SecretHasher : ISecretHasher
 {
-    private static int SaltSize { get; set; } = 16;
-    private static int KeySize { get; set; } = 32;
-    private static int Iterations { get; set; } = 100000;
-    private static HashAlgorithmName Algorithm { get; set; } = HashAlgorithmName.SHA256;
-
     private const char SegmentDelimiter = ':';
-    
+    private static int SaltSize { get; } = 16;
+    private static int KeySize { get; } = 32;
+    private static int Iterations { get; } = 100000;
+    private static HashAlgorithmName Algorithm { get; } = HashAlgorithmName.SHA256;
+
     public string Hash(string secret)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);

@@ -8,9 +8,9 @@ namespace Currency.Services.Application;
 
 internal class UserService(
     ISecretHasher secretHasher,
-    IUsersRepository usersRepository): IUserService
+    IUsersRepository usersRepository) : IUserService
 {
-    #nullable enable
+#nullable enable
     public async Task<User?> TryGetUserAsync(LoginModel model)
     {
         var user = await usersRepository.GetUserByUsernameAsync(model);

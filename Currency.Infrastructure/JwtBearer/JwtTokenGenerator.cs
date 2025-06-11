@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Currency.Infrastructure.JwtBearer;
 
-internal class JwtTokenGenerator(JwtSettings jwtSettings): IJwtTokenGenerator
+internal class JwtTokenGenerator(JwtSettings jwtSettings) : IJwtTokenGenerator
 {
     public IEnumerable<Claim> BuildClaims(string identifier, string username, UserRole role)
     {
@@ -19,7 +19,7 @@ internal class JwtTokenGenerator(JwtSettings jwtSettings): IJwtTokenGenerator
             new(ClaimTypes.NameIdentifier, identifier),
             new(ClaimTypes.Name, username),
             new(ClaimTypes.Role, role.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
     }
 
@@ -28,8 +28,8 @@ internal class JwtTokenGenerator(JwtSettings jwtSettings): IJwtTokenGenerator
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecurityKey));
 
         var jwtToken = new JwtSecurityToken(
-            issuer: jwtSettings.Issuer,
-            audience: jwtSettings.Audience,
+            jwtSettings.Issuer,
+            jwtSettings.Audience,
             expires: DateTime.UtcNow.AddMinutes(jwtSettings.AccessTokenTtlInMinutes),
             claims: claims,
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));

@@ -10,7 +10,7 @@ internal static class Registry
     public static void Register(ContainerBuilder container, RedisSettings settings)
     {
         container.RegisterInstance(settings).AsSelf().SingleInstance();
-        
+
         container.Register(_ => ConnectionMultiplexer.Connect(settings.ConnectionString))
             .As<IConnectionMultiplexer>()
             .SingleInstance();

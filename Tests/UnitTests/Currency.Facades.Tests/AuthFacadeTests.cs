@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Bogus;
 using Currency.Domain.Login;
 using Currency.Domain.Users;
-using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Tests.Fakes;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
@@ -42,22 +41,22 @@ public class AuthFacadeTests
             Password = request.Password,
             Role = UserRole.User
         };
-        
+
         _userService.Setup(x => x.TryGetUserAsync(It.IsAny<LoginModel>())).ReturnsAsync(user);
-        
+
         _tokenService.Setup(x => x.GenerateTokens(It.IsAny<User>()))
             .Returns((FakeResults.GenerateFakeTokens(), new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name, user.Username),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.Username)
             }));
         _tokenService.Setup(x => x.AddRefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()));
-        
+
         var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
-        
+
         //Act
         var result = await sut.LoginAsync(request);
-        
+
         //Assert
         Assert.Multiple(() =>
         {
@@ -70,7 +69,7 @@ public class AuthFacadeTests
             Assert.That(result.RefreshToken, Is.Not.Null.Or.Empty);
         });
     }
-    
+
     [Test]
     public async Task RefreshTokenAsync_HappyPath_ShouldReturnTokens()
     {
@@ -84,25 +83,25 @@ public class AuthFacadeTests
             Password = new Faker().Random.Hash(),
             Role = UserRole.User
         };
-        
+
         _userService.Setup(x => x.TryGetUserByIdAsync(It.IsAny<string>())).ReturnsAsync(user);
-        
+
         _tokenService.Setup(x => x.GetRefreshTokenAsync(It.IsAny<string>()))
             .ReturnsAsync(new RefreshToken { Verified = true, UserId = user.Id });
         _tokenService.Setup(x => x.GenerateAccessToken(It.IsAny<User>()))
             .Returns((
-                new AccessToken { ExpiresAt = DateTime.MaxValue, Token = new Faker().Random.Hash() }, 
+                new AccessToken { ExpiresAt = DateTime.MaxValue, Token = new Faker().Random.Hash() },
                 new List<Claim>
                 {
                     new(ClaimTypes.NameIdentifier, user.Id),
-                    new(ClaimTypes.Name, user.Username),
+                    new(ClaimTypes.Name, user.Username)
                 }));
-        
+
         var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
-        
+
         //Act
         var result = await sut.RefreshTokenAsync(req);
-        
+
         //Assert
         Assert.Multiple(() =>
         {

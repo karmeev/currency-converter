@@ -16,7 +16,7 @@ public class AuthController(IAuthFacade facade) : ControllerBase
         var response = await facade.LoginAsync(request);
         if (!response.Success)
             return BadRequest(response.ErrorMessage);
-        
+
         return Ok(new
         {
             response.AccessToken,
@@ -31,7 +31,7 @@ public class AuthController(IAuthFacade facade) : ControllerBase
         var response = await facade.RefreshTokenAsync(request.Token);
         if (!response.Success)
             return BadRequest(response.ErrorMessage);
-        
+
         return Ok(new
         {
             response.AccessToken,

@@ -11,25 +11,21 @@ namespace Currency.Api.Controllers;
 public class CurrencyController : ControllerBase
 {
     private const string DefaultCurrency = "EUR";
-    
+
     [HttpGet]
     public async Task GetExchangeRateHistoryAsync()
     {
-        
     }
-    
+
     [HttpPost]
     public async Task ConvertCurrencyAsync()
     {
-        
     }
-    
+
     [HttpGet("latest")]
     public async Task GetLatestExchangeRatesAsync([FromQuery] string currency)
     {
         if (string.IsNullOrEmpty(currency))
             currency = DefaultCurrency;
-        
-        
     }
 }

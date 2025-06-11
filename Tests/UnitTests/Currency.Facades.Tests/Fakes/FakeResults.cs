@@ -10,9 +10,9 @@ public static class FakeResults
         var fakeToken = new Tokens
         {
             AccessToken = new Faker().Random.Hash(),
-            RefreshToken = new Faker().Random.Hash(),
+            RefreshToken = new Faker().Random.Hash()
         };
-        
+
         return fakeToken;
     }
 }

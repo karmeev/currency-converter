@@ -1,5 +1,4 @@
 using System.Text;
-using Currency.Api.Settings;
 using Currency.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
@@ -15,7 +14,7 @@ public static class IdentityConfiguration
     {
         services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(@"/root/.aspnet/DataProtection-Keys"))
-            .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration()
+            .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
             {
                 EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                 ValidationAlgorithm = ValidationAlgorithm.HMACSHA256

@@ -12,7 +12,7 @@ public class UserServiceTests
 {
     private Mock<ISecretHasher> _secretHasherMock;
     private Mock<IUsersRepository> _userRepositoryMock;
-    
+
     [SetUp]
     public void Setup()
     {
@@ -26,23 +26,23 @@ public class UserServiceTests
         //Arrange
         var user = FakeModels.GenerateFakeUser();
         var model = new LoginModel(user.Username, string.Empty);
-        
+
         _secretHasherMock.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(true);
 
         _userRepositoryMock.Setup(x => x.GetUserByUsernameAsync(It.IsAny<LoginModel>()))
             .ReturnsAsync(user);
-        
+
         var sut = new UserService(_secretHasherMock.Object, _userRepositoryMock.Object);
-        
+
         //Act
         var result = await sut.TryGetUserAsync(model);
-        
+
         //Assert
         if (result is not null) Assert.Pass();
         else Assert.Fail();
     }
-    
+
     [Test]
     public async Task TryGetUserByIdAsync_HappyPath_ShouldReturnUser()
     {
@@ -53,12 +53,12 @@ public class UserServiceTests
 
         _userRepositoryMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
             .ReturnsAsync(user);
-        
+
         var sut = new UserService(_secretHasherMock.Object, _userRepositoryMock.Object);
-        
+
         //Act
         var result = await sut.TryGetUserByIdAsync(id);
-        
+
         //Assert
         if (result is not null) Assert.Pass();
         else Assert.Fail();

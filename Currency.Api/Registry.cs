@@ -1,15 +1,13 @@
 using Autofac;
 using Currency.Api.Models;
 using Currency.Api.Settings;
-using Currency.Infrastructure.Settings;
 using Currency.Services.Application.Settings;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Currency.Api;
 
 public static class Registry
 {
-    public static void RegisterDependencies(ContainerBuilder container, ApiSettings settings, 
+    public static void RegisterDependencies(ContainerBuilder container, ApiSettings settings,
         ConfigurationManager configurationManager)
     {
         Facades.Registry.RegisterDependencies(container);
