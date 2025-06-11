@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Currency.Api.Exceptions;
 using Currency.Api.Settings;
+using Currency.Infrastructure.Settings;
 
 namespace Currency.Api.Configurations;
 
@@ -53,7 +54,7 @@ public static class ApiConfiguration
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(GetClient(httpContext), _ =>
+                return RateLimitPartition.GetFixedWindowLimiter(GetUser(httpContext), _ =>
                     new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = settings.PermitLimit,
@@ -67,7 +68,7 @@ public static class ApiConfiguration
         });
         return;
 
-        string GetClient(HttpContext context)
+        string GetUser(HttpContext context)
         {
             return context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
         }

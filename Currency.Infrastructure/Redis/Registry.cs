@@ -7,7 +7,7 @@ namespace Currency.Infrastructure.Redis;
 
 internal static class Registry
 {
-    public static void Register(ContainerBuilder container, RedisSettings settings)
+    public static void RegisterDependencies(ContainerBuilder container, RedisSettings settings)
     {
         container.RegisterInstance(settings).AsSelf().SingleInstance();
 

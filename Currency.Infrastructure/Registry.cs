@@ -14,6 +14,7 @@ public static class Registry
         container.RegisterInstance(settings.JwtSettings).SingleInstance();
         container.RegisterType<SecretHasher>().As<ISecretHasher>().SingleInstance();
         container.RegisterType<JwtTokenGenerator>().As<IJwtTokenGenerator>().SingleInstance();
-        Redis.Registry.Register(container, settings.RedisSettings);
+        Redis.Registry.RegisterDependencies(container, settings.RedisSettings);
+        Integrations.Registry.RegisterDependencies(container);
     }
 }
