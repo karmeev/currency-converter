@@ -1,16 +1,18 @@
 using Bogus;
+using Currency.Domain.Login;
 
 namespace Currency.Facades.Tests.Fakes;
 
 public static class FakeResults
 {
-    public static string GenerateRefreshToken()
+    public static Tokens GenerateFakeTokens()
     {
-        return new Faker().Random.Guid().ToString();
-    }
-    
-    public static string GenerateAccessToken()
-    {
-        return new Faker().Random.Guid().ToString();
+        var fakeToken = new Tokens
+        {
+            AccessToken = new Faker().Random.Hash(),
+            RefreshToken = new Faker().Random.Hash(),
+        };
+        
+        return fakeToken;
     }
 }

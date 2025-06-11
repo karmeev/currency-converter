@@ -1,5 +1,7 @@
+using Currency.Infrastructure.Settings;
+
 namespace Currency.Api.Settings;
 
 public record ApiSettings(
-    AuthSettings AuthSettings, 
-    RateLimiterSettings RateLimiterSettings);
+    RateLimiterSettings RateLimiterSettings,
+    InfrastructureSettings InfrastructureSettings);

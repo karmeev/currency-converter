@@ -1,13 +1,25 @@
+using Currency.Data.Contracts;
 using Currency.Domain.Login;
-using Currency.Services.Contracts;
+using Currency.Domain.Users;
+using Currency.Infrastructure.Contracts.Auth;
 using Currency.Services.Contracts.Application;
 
 namespace Currency.Services.Application;
 
-internal class UserService: IUserService
+internal class UserService(
+    ISecretHasher secretHasher,
+    IUsersRepository usersRepository): IUserService
 {
-    public Task<bool> CheckUser(LoginModel model)
+    #nullable enable
+    public async Task<User?> TryGetUserAsync(LoginModel model)
     {
-        throw new NotImplementedException();
+        var user = await usersRepository.GetUserByUsernameAsync(model);
+        if (user == null) return null;
+        return secretHasher.Verify(model.Password, user.Password) ? user : null;
+    }
+
+    public async Task<User?> TryGetUserByIdAsync(string userId)
+    {
+        return await usersRepository.GetUserByIdAsync(userId);
     }
 }

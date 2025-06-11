@@ -10,8 +10,9 @@ services:
       - "8080:8080"
       - "8081:8081"
     environment:
-      - TZ=Europe/Moscow
       - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - currency_network
         
   redis:
     image: redis:latest
@@ -21,6 +22,13 @@ services:
       - redis_data:/data
     ports:
       - "6390:6379"
+    networks:
+      - currency_network
+        
+networks:
+  currency_network:
+    name: currency_network
+    external: false
 
 volumes:
   redis_data:

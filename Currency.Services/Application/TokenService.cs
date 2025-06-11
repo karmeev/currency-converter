@@ -1,23 +1,56 @@
 using System.Security.Claims;
+using Currency.Data.Contracts;
 using Currency.Domain.Login;
+using Currency.Domain.Users;
+using Currency.Infrastructure.Contracts.JwtBearer;
+using Currency.Services.Application.Settings;
 using Currency.Services.Contracts.Application;
 
 namespace Currency.Services.Application;
 
-internal class TokenService: ITokenService
+internal class TokenService(
+    ServicesSettings settings,
+    IJwtTokenGenerator tokenGenerator,
+    IAuthRepository authRepository): ITokenService
 {
-    public IEnumerable<Claim> GetClaims(LoginModel model)
+    public (Tokens, IEnumerable<Claim>) GenerateTokens(User user)
     {
-        throw new NotImplementedException();
+        var (accessToken, claims) = GenerateAccessToken(user);
+        var refreshToken = tokenGenerator.CreateRefreshToken(user.Username);
+
+        var tokens = new Tokens
+        {
+            AccessToken = accessToken.Token,
+            ExpiresAt = accessToken.ExpiresAt,
+            RefreshToken = refreshToken
+        };
+        return (tokens, claims);
     }
 
-    public string GenerateRefreshToken(LoginModel model)
+    public (AccessToken, IEnumerable<Claim>) GenerateAccessToken(User user)
     {
-        throw new NotImplementedException();
+        var claims = tokenGenerator.BuildClaims(identifier: user.Id, 
+            username: user.Username, role: user.Role);
+        var accessToken = tokenGenerator.CreateAccessToken(claims);
+        
+        return (accessToken, claims);
     }
 
-    public string GenerateAccessToken(IEnumerable<Claim> claims)
+    public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)
     {
-        throw new NotImplementedException();
+        return await authRepository.GetRefreshTokenAsync(refreshToken);
+    }
+
+    public async Task AddRefreshTokenAsync(string refreshToken, string userId)
+    {
+        var token = new RefreshToken
+        {
+            Verified = true,
+            UserId = userId,
+            Token = refreshToken,
+            ExpirationDate = DateTime.Now.AddDays(settings.RefreshTokenTtlInDays),
+            ExpiresAt = TimeSpan.FromDays(settings.RefreshTokenTtlInDays)
+        };
+        await authRepository.AddRefreshToken(token);
     }
 }

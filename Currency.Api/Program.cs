@@ -10,13 +10,17 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 var settings = builder.Configuration.ConfigureSettings(builder.Environment.EnvironmentName);
 
 builder.Services.AddControllers();
+builder.Services.ConfigureVersioning();
+builder.Services.ConfigureIdentity(settings.InfrastructureSettings.JwtSettings);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
-builder.Services.ConfigureVersioning();
 
-builder.Host.ConfigureContainer<ContainerBuilder>(container => Registry.RegisterDependencies(container, settings));
+builder.Host.ConfigureContainer<ContainerBuilder>(container =>
+{
+    Registry.RegisterDependencies(container, settings, builder.Configuration);
+});
 
 var app = builder.Build();
 

@@ -9,7 +9,7 @@ public static class FakeRequests
     {
         var fake = new Faker<LoginRequest>()
             .RuleFor(x => x.Username, f => f.Person.UserName)
-            .RuleFor(x => x.Password, f => f.Random.Word());
+            .RuleFor(x => x.Password, f => f.Random.Hash());
         return fake.Generate();
     }
 }

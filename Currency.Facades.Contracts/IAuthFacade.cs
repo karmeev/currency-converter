@@ -5,5 +5,6 @@ namespace Currency.Facades.Contracts;
 
 public interface IAuthFacade
 {
-    Task<LoginResponse> LoginAsync(LoginRequest request);
+    Task<AuthResponse> LoginAsync(LoginRequest request);
+    Task<AuthResponse> RefreshTokenAsync(string token);
 }

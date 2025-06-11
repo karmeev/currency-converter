@@ -17,6 +17,26 @@ public class AuthController(IAuthFacade facade) : ControllerBase
         if (!response.Success)
             return BadRequest(response.ErrorMessage);
         
-        return Ok(response);
+        return Ok(new
+        {
+            response.AccessToken,
+            response.RefreshToken,
+            response.ExpiresAt
+        });
+    }
+
+    [HttpPost("refreshToken")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        var response = await facade.RefreshTokenAsync(request.Token);
+        if (!response.Success)
+            return BadRequest(response.ErrorMessage);
+        
+        return Ok(new
+        {
+            response.AccessToken,
+            response.RefreshToken,
+            response.ExpiresAt
+        });
     }
 }

@@ -10,30 +10,38 @@ namespace Currency.Facades;
 internal class AuthFacade(
     IAuthValidator validator,
     IUserService userService,
-    ICacheService cacheService,
     ITokenService tokenService): IAuthFacade
 {
-    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var validationResult = validator.Validate(request.Username, request.Password);
         if (!validationResult.IsValid)
         {
-            return LoginResponse.Error(validationResult.Message);
+            return AuthResponse.Error(validationResult.Message);
         }
         
         var model = new LoginModel(request.Username, request.Password);
-        var isUserExist = await userService.CheckUser(model);
-        if (!isUserExist)
-        {
-            return LoginResponse.Error("Incorrect credentials");
-        }
+        var user = await userService.TryGetUserAsync(model);
+        if (user is null) return AuthResponse.Error("Incorrect credentials");
 
-        var claims = tokenService.GetClaims(model);
-        var accessToken = tokenService.GenerateAccessToken(claims);
-        var refreshToken = tokenService.GenerateRefreshToken(model);
+        var (tokenModel, claims) = tokenService.GenerateTokens(user);
+        await tokenService.AddRefreshTokenAsync(tokenModel.RefreshToken, user.Id);
         
-        await cacheService.InsertNewRefreshToken(model);
+        return new AuthResponse(claims, tokenModel.AccessToken, tokenModel.RefreshToken, 
+            tokenModel.ExpiresAt);
+    }
 
-        return new LoginResponse(claims, accessToken, refreshToken);
+    public async Task<AuthResponse> RefreshTokenAsync(string token)
+    {
+        if (string.IsNullOrEmpty(token)) return AuthResponse.Error("Invalid refresh token");
+        var refreshToken = await tokenService.GetRefreshTokenAsync(token);
+        if (!refreshToken.Verified) return AuthResponse.Error("Refresh token is not verified");
+        
+        var user = await userService.TryGetUserByIdAsync(refreshToken.UserId);
+        if (user is null) return AuthResponse.Error("User not found");
+        
+        var (accessToken, claims) = tokenService.GenerateAccessToken(user);
+        
+        return new AuthResponse(claims, accessToken.Token, token, accessToken.ExpiresAt);
     }
 }

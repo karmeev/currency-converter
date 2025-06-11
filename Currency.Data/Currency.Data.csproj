@@ -6,4 +6,20 @@
         <Nullable>disable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Currency.Data.Contracts\Currency.Data.Contracts.csproj" />
+      <ProjectReference Include="..\Currency.Domain\Currency.Domain.csproj" />
+      <ProjectReference Include="..\Currency.Infrastructure.Contracts\Currency.Infrastructure.Contracts.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="StackExchange.Redis">
+        <HintPath>..\..\..\..\..\..\.nuget\packages\stackexchange.redis\2.8.37\lib\net8.0\StackExchange.Redis.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

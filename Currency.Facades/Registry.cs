@@ -1,6 +1,5 @@
 using Autofac;
 using Currency.Facades.Contracts;
-using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Validators;
 
 namespace Currency.Facades;
