@@ -22,7 +22,7 @@ public class FrankfurterClientTests
         var sut = new FrankfurterClient(_client);
         
         //Act
-        var result = await sut.GetLatestRatesAsync("USD", CancellationToken.None);
+        var result = await sut.GetLatestExchangeRateAsync("USD", CancellationToken.None);
         
         //Assert
         Assert.Multiple(() =>

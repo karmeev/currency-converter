@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 
-public class GetLatestRatesResponse
+public class GetLatestExchangeRateResponse
 {
     [JsonProperty("base")] public string Base { get; set; }
     [JsonProperty("date")] public DateTime Date { get; set; }

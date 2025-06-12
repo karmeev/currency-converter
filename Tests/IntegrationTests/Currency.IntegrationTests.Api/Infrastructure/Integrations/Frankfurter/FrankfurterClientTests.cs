@@ -29,13 +29,13 @@ public class FrankfurterClientTests
     }
 
     [Test]
-    public async Task GetLatestRatesAsync_HappyPath_ReturnsLatestUsdRates()
+    public async Task GetLatestExchangeRateAsync_HappyPath_ReturnsLatestUsdRates()
     {
         //Arrange
         var sut = new FrankfurterClient(_client);
         
         //Act
-        var result = await sut.GetLatestRatesAsync("USD", CancellationToken.None);
+        var result = await sut.GetLatestExchangeRateAsync("USD", CancellationToken.None);
         
         //Assert
         Assert.Multiple(() =>
@@ -47,14 +47,14 @@ public class FrankfurterClientTests
     }
     
     [Test]
-    public async Task GetLatestRatesAsync_ReturnsInternalServerErrorOneTime_ShouldRetry()
+    public async Task GetLatestExchangeRateAsync_ReturnsInternalServerErrorOneTime_ShouldRetry()
     {
         //Arrange
         _client.BaseAddress = new Uri(WireMockAddress);
         var sut = new FrankfurterClient(_client);
         
         //Act
-        var result = await sut.GetLatestRatesAsync("USD", CancellationToken.None);
+        var result = await sut.GetLatestExchangeRateAsync("USD", CancellationToken.None);
         
         //Assert
         Assert.Multiple(() =>
@@ -66,7 +66,7 @@ public class FrankfurterClientTests
     }
     
     [Test]
-    public async Task GetLatestRatesAsync_ReturnsInternalServerErrorManyTime_ShouldThrowBrokenCircuitException()
+    public async Task GetLatestExchangeRateAsync_ReturnsInternalServerErrorManyTime_ShouldThrowBrokenCircuitException()
     {
         //Arrange
         _client.BaseAddress = new Uri(WireMockAddress);
@@ -75,13 +75,13 @@ public class FrankfurterClientTests
         // Act
         for (int i = 0; i < 10; i++)
         {
-            try { await sut.GetLatestRatesAsync("EUR"); } catch { }
+            try { await sut.GetLatestExchangeRateAsync("EUR"); } catch { }
         }
 
         // Assert
         Assert.ThrowsAsync<BrokenCircuitException<HttpResponseMessage>>(async () => 
         {
-            await sut.GetLatestRatesAsync("EUR");
+            await sut.GetLatestExchangeRateAsync("EUR");
         });
     }
     
