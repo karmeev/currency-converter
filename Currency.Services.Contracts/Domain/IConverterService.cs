@@ -1,6 +1,9 @@
+using Currency.Domain.Operations;
+
 namespace Currency.Services.Contracts.Domain;
 
 public interface IConverterService
 {
-    Task ConvertToCurrency(decimal amount, string currentCurrency, string newCurrency);
+    Task<CurrencyConversion> ConvertToCurrency(decimal amount, string currency, string requestedCurrency,
+        CancellationToken token = default);
 }
