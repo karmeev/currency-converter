@@ -1,14 +1,20 @@
-using Currency.Infrastructure.Integrations.Frankfurter.Responses;
+using Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 using Newtonsoft.Json;
 
-namespace Currency.Infrastructure.Integrations.Frankfurter;
+namespace Currency.Infrastructure.Integrations.Providers.Frankfurter;
 
-internal interface IFrankfurterClient
+internal interface IFrankfurterClient: IDisposable
 {
-    
+    Task<GetLatestRatesResponse> GetLatestRatesAsync(string currency, CancellationToken token = default);
+
+    Task<GetExchangeRatesHistoryResponse> GetExchangeRatesHistoryAsync(string currency, DateOnly start, DateOnly end,
+        CancellationToken token = default);
+
+    Task<GetLatestExchangeRatesResponse> GetLatestExchangeRatesAsync(string from, string[] symbols,
+        CancellationToken token = default);
 } 
 
-internal class FrankfurterClient(HttpClient client): IDisposable, IFrankfurterClient
+internal class FrankfurterClient(HttpClient client): IFrankfurterClient
 {
     public async Task<GetLatestRatesResponse> GetLatestRatesAsync(string currency, CancellationToken token = default)
     {

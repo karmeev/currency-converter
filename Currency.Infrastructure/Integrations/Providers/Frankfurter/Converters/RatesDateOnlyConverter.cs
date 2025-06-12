@@ -2,7 +2,7 @@ using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Currency.Infrastructure.Integrations.Frankfurter.Converters;
+namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Converters;
 
 internal class RatesDateOnlyConverter : JsonConverter<Dictionary<DateOnly, Dictionary<string, decimal>>>
 {

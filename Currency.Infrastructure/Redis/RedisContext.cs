@@ -9,25 +9,25 @@ internal class RedisContext(
     RedisSettings settings,
     IConnectionMultiplexer connection) : IRedisContext
 {
-    private const string AuthDb = "auth";
+    private const string AuthPrefix = "auth";
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null, string dbKey = null)
     {
         var serialized = JsonSerializer.Serialize(value);
-        var db = GetDatabase(dbKey ?? string.Empty);
+        var db = GetDatabase(key);
         await db.StringSetAsync(key, serialized, ttl);
     }
 
     public async Task<T?> GetAsync<T>(string key, string dbKey = null)
     {
-        var db = GetDatabase(dbKey ?? string.Empty);
+        var db = GetDatabase(key);
         var value = await db.StringGetAsync(key);
         return value.HasValue ? JsonSerializer.Deserialize<T>(value!) : default;
     }
 
-    private IDatabase GetDatabase(string dbKey)
+    private IDatabase GetDatabase(string key)
     {
-        if (dbKey == AuthDb) return connection.GetDatabase(settings.RefreshTokensDatabaseNumber);
+        if (key.StartsWith(AuthPrefix)) return connection.GetDatabase(settings.RefreshTokensDatabaseNumber);
 
         return connection.GetDatabase(settings.EntitiesDatabaseNumber);
     }

@@ -1,6 +1,9 @@
 using Autofac;
 using Currency.Infrastructure.Contracts.Integrations;
-using Currency.Infrastructure.Integrations.Frankfurter;
+using Currency.Infrastructure.Contracts.Integrations.Providers;
+using Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter;
+using Currency.Infrastructure.Integrations.Providers;
+using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 
@@ -10,11 +13,8 @@ internal static class Registry
 {
     public static void RegisterDependencies(ContainerBuilder container)
     {
-        container.RegisterFrankfurter();
-    }
-
-    private static void RegisterFrankfurter(this ContainerBuilder container)
-    {
+        CurrencyProvidersFactory.RegisterProviders(container);
+        
         container.Register<IFrankfurterClient>(ctx =>
             {
                 var httpClientFactory = ctx.Resolve<IHttpClientFactory>();
@@ -29,6 +29,6 @@ internal static class Registry
                 return new FrankfurterClient(client);
             })
             .As<IFrankfurterClient>()
-            .InstancePerLifetimeScope(); 
+            .InstancePerLifetimeScope();
     }
 }

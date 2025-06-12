@@ -11,8 +11,4 @@
         <ProjectReference Include="..\Currency.Domain\Currency.Domain.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Domain\"/>
-    </ItemGroup>
-
 </Project>

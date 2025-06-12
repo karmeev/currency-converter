@@ -1,7 +1,7 @@
-using Currency.Infrastructure.Integrations.Frankfurter.Converters;
+using Currency.Infrastructure.Integrations.Providers.Frankfurter.Converters;
 using Newtonsoft.Json;
 
-namespace Currency.Infrastructure.Integrations.Frankfurter.Responses;
+namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 
 public class GetExchangeRatesHistoryResponse
 {

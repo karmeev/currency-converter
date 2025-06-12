@@ -1,4 +1,4 @@
-using Currency.Infrastructure.Integrations.Frankfurter;
+using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 
 namespace Currency.Infrastructure.Tests.Integrations.Frankfurter;
 

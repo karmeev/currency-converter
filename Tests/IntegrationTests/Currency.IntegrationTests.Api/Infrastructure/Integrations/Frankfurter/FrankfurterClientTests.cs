@@ -1,6 +1,6 @@
 using Currency.Api.Configurations;
 using Currency.Infrastructure.Contracts.Integrations;
-using Currency.Infrastructure.Integrations.Frankfurter;
+using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.CircuitBreaker;
 

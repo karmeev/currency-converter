@@ -1,7 +1,7 @@
 using System.Globalization;
 using Newtonsoft.Json;
 
-namespace Currency.Infrastructure.Integrations.Frankfurter.Converters;
+namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Converters;
 
 internal class DateOnlyConverter : JsonConverter<DateOnly>
 {

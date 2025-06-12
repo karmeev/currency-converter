@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Currency.Infrastructure.Integrations.Frankfurter.Responses;
+namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 
 public class GetLatestRatesResponse
 {
