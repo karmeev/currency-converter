@@ -12,12 +12,12 @@ var settings = builder.Configuration.ConfigureSettings(builder.Environment.Envir
 builder.Services.AddControllers();
 builder.Services.ConfigureVersioning();
 builder.Services.ConfigureIdentity(settings.InfrastructureSettings.JwtSettings);
+builder.Services.ConfigureThirdParty();
 builder.Services.AddOptions();
 builder.Services.AddHttpClient();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
-
 
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 {

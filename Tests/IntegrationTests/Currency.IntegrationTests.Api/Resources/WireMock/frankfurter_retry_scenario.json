@@ -1,0 +1,18 @@
+{
+  "scenarioName": "RetryScenario",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "SecondAttempt",
+  "request": {
+    "method": "GET",
+    "urlPath": "/v1/latest",
+    "queryParameters": {
+      "base": {
+        "equalTo": "USD"
+      }
+    }
+  },
+  "response": {
+    "status": 500,
+    "body": "Internal Server Error"
+  }
+}

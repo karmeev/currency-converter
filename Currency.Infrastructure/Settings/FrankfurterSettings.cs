@@ -11,4 +11,8 @@ public class FrankfurterSettings
 
     public Uri BaseAddressUri => _cachedBaseAddress;
     public int TimeoutSeconds { get; set; } = 10;
+    public int RetryCount { get; set; } = 3;
+    public int RetryExponentialIntervalSeconds { get; set; } = 5;
+    public int CircuitBreakerDurationBreakSeconds { get; set; } = 30;
+    public int CircuitBreakerMaxExceptions { get; set; } = 6;
 }

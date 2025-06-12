@@ -1,0 +1,9 @@
+name: integration-tests
+services:
+  wiremock:
+    image: wiremock/wiremock:2.35.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Resources/WireMock:/home/wiremock/mappings
+      - ./wiremock/__files:/home/wiremock/__files

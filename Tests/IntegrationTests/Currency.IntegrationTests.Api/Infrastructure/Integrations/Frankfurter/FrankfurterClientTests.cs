@@ -1,18 +1,31 @@
+using Currency.Api.Configurations;
+using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Integrations.Frankfurter;
+using Microsoft.Extensions.DependencyInjection;
+using Polly.CircuitBreaker;
 
-namespace Currency.Infrastructure.Tests.Integrations.Frankfurter;
+namespace Currency.IntegrationTests.Api.Infrastructure.Integrations.Frankfurter;
 
-[Ignore("Integration test")]
+[TestFixture]
+[Category("Integration tests")]
 public class FrankfurterClientTests
 {
     private HttpClient _client;
+    private const string WireMockAddress = "http://localhost:8080";
     
     [SetUp]
     public void Setup()
     {
-        _client = new HttpClient();
-        _client.BaseAddress = new Uri("https://api.frankfurter.dev");
-        _client.Timeout = TimeSpan.FromSeconds(5);
+        var services = new ServiceCollection();
+        services.ConfigureThirdParty();
+        services.AddOptions();
+        services.AddHttpClient();
+        var provider = services.BuildServiceProvider();
+        
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        var client = factory.CreateClient(IntegrationConst.Frankfurter);
+        
+        _client = client;
     }
 
     [Test]
@@ -30,6 +43,45 @@ public class FrankfurterClientTests
             Assert.That(result.Base, Is.EqualTo("USD"));
             Assert.That(result.Date, Is.LessThanOrEqualTo(DateTime.UtcNow.Date));
             Assert.That(result.Rates, Is.Not.Null.And.Not.Empty);
+        });
+    }
+    
+    [Test]
+    public async Task GetLatestRatesAsync_ReturnsInternalServerErrorOneTime_ShouldRetry()
+    {
+        //Arrange
+        _client.BaseAddress = new Uri(WireMockAddress);
+        var sut = new FrankfurterClient(_client);
+        
+        //Act
+        var result = await sut.GetLatestRatesAsync("USD", CancellationToken.None);
+        
+        //Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Base, Is.EqualTo("USD"));
+            Assert.That(result.Date, Is.LessThanOrEqualTo(DateTime.UtcNow.Date));
+            Assert.That(result.Rates, Is.Not.Null.And.Not.Empty);
+        });
+    }
+    
+    [Test]
+    public async Task GetLatestRatesAsync_ReturnsInternalServerErrorManyTime_ShouldThrowBrokenCircuitException()
+    {
+        //Arrange
+        _client.BaseAddress = new Uri(WireMockAddress);
+        var sut = new FrankfurterClient(_client);
+        
+        // Act
+        for (int i = 0; i < 10; i++)
+        {
+            try { await sut.GetLatestRatesAsync("EUR"); } catch { }
+        }
+
+        // Assert
+        Assert.ThrowsAsync<BrokenCircuitException<HttpResponseMessage>>(async () => 
+        {
+            await sut.GetLatestRatesAsync("EUR");
         });
     }
     
@@ -76,7 +128,7 @@ public class FrankfurterClientTests
                 "Expected at least one entry with USD rate.");
         });
     }
-
+    
     [TearDown]
     public void TearDown()
     {

@@ -8,6 +8,7 @@ using Moq;
 
 namespace Currency.Services.Tests.Application;
 
+[Category("Unit tests")]
 public class UserServiceTests
 {
     private Mock<ISecretHasher> _secretHasherMock;

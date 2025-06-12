@@ -2,6 +2,7 @@ using Currency.Infrastructure.Auth;
 
 namespace Currency.Infrastructure.Tests.Auth;
 
+[Category("Unit tests")]
 public class SecretHasherTests
 {
     [SetUp]

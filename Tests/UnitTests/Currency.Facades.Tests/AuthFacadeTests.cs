@@ -11,6 +11,7 @@ using ValidationResult = Currency.Facades.Validators.Results.ValidationResult;
 namespace Currency.Facades.Tests;
 
 [TestFixture]
+[Category("Unit tests")]
 public class AuthFacadeTests
 {
     private Mock<IAuthValidator> _authValidator;
