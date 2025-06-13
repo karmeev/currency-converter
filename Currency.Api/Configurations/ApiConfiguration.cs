@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Currency.Api.Schemes;
 using Currency.Api.Settings;
 using Currency.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace Currency.Api.Configurations;
 
@@ -29,6 +31,7 @@ public static class ApiConfiguration
 
         settings = new StartupSettings
         {
+            DataProtectionKeysDirectory = configuration.GetSection("DataProtectionKeysDirectory").Value,
             RateLimiter = configuration.GetSection("RateLimiter").Get<RateLimiterSettings>(),
             Jwt = configuration.GetSection("Infrastructure:Jwt").Get<JwtSettings>(),
             Integrations = new IntegrationsSettings
@@ -89,7 +92,7 @@ public static class ApiConfiguration
     {
         var settings = startupSettings.Jwt;
         services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(@"/root/.aspnet/DataProtection-Keys"))
+            .PersistKeysToFileSystem(new DirectoryInfo(startupSettings.DataProtectionKeysDirectory))
             .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
             {
                 EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
@@ -100,8 +103,7 @@ public static class ApiConfiguration
 
         services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "CURRENCY";
-                options.DefaultChallengeScheme = "CURRENCY";
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -115,6 +117,37 @@ public static class ApiConfiguration
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecurityKey)),
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
+                };
+                
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var response = new ErrorResponseScheme
+                        {
+                            Error = "unauthorized",
+                            Message = "Authentication is required to access this resource."
+                        };
+
+                        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+
+                        var response = new ErrorResponseScheme
+                        {
+                            Error = "forbidden",
+                            Message = "You do not have sufficient permissions to access this resource."
+                        };
+
+                        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+                    }
                 };
             });
     }

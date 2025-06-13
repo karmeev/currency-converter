@@ -17,15 +17,15 @@ public class CurrencyController : ControllerBase
     {
     }
 
-    [HttpPost]
-    public async Task ConvertCurrencyAsync()
-    {
-    }
-
     [HttpGet("latest")]
     public async Task GetLatestExchangeRatesAsync([FromQuery] string currency)
     {
         if (string.IsNullOrEmpty(currency))
             currency = DefaultCurrency;
+    }
+    
+    [HttpPost("convert")]
+    public async Task ConvertCurrencyAsync()
+    {
     }
 }
