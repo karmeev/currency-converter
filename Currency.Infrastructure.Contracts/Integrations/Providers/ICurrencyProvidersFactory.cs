@@ -1,9 +1,10 @@
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base;
+using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Requests;
 
 namespace Currency.Infrastructure.Contracts.Integrations.Providers;
 
 #nullable enable
 public interface ICurrencyProvidersFactory
 {
-    T? TryGetCurrencyProvider<T>() where T : ICurrencyProvider;
+    ICurrencyProvider TryGetCurrencyProvider<T>(T request) where T : ICurrencyProviderRequest;
 }
