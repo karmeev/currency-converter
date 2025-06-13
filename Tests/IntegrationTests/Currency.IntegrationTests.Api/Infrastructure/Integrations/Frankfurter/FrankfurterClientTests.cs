@@ -33,7 +33,7 @@ public class FrankfurterClientTests
             }
         };
         
-        services.ConfigureThirdParty(settings);
+        services.AddThirdParty(settings);
         services.AddOptions();
         services.AddHttpClient();
         var provider = services.BuildServiceProvider();

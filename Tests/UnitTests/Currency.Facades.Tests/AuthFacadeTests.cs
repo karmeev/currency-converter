@@ -56,7 +56,7 @@ public class AuthFacadeTests
         var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
 
         //Act
-        var result = await sut.LoginAsync(request);
+        var result = await sut.LoginAsync(request, CancellationToken.None);
 
         //Assert
         Assert.Multiple(() =>
@@ -75,7 +75,7 @@ public class AuthFacadeTests
     public async Task RefreshTokenAsync_HappyPath_ShouldReturnTokens()
     {
         //Arrange
-        var req = new Faker().Random.Hash();
+        var request = new Faker().Random.Hash();
 
         var user = new User
         {
@@ -101,7 +101,7 @@ public class AuthFacadeTests
         var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
 
         //Act
-        var result = await sut.RefreshTokenAsync(req);
+        var result = await sut.RefreshTokenAsync(request, CancellationToken.None);
 
         //Assert
         Assert.Multiple(() =>

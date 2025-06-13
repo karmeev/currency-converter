@@ -19,6 +19,7 @@ internal class FrankfurterClient(HttpClient client) : IFrankfurterClient
     public async Task<GetLatestExchangeRateResponse> GetLatestExchangeRateAsync(string currency,
         CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         var builder = new UriBuilder(client.BaseAddress!)
         {
             Path = "/v1/latest",
@@ -34,6 +35,7 @@ internal class FrankfurterClient(HttpClient client) : IFrankfurterClient
     public async Task<GetLatestExchangeRatesResponse> GetLatestExchangeRatesAsync(string from, string[] symbols,
         CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         var builder = new UriBuilder(client.BaseAddress!)
         {
             Path = "/v1/latest",
@@ -49,6 +51,7 @@ internal class FrankfurterClient(HttpClient client) : IFrankfurterClient
     public async Task<GetExchangeRatesHistoryResponse> GetExchangeRatesHistoryAsync(string currency, DateOnly start,
         DateOnly end, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         var builder = new UriBuilder(client.BaseAddress!)
         {
             Path = $"/v1/{start:yyyy-MM-dd}..{end:yyyy-MM-dd}",
@@ -77,7 +80,8 @@ internal class FrankfurterClient(HttpClient client) : IFrankfurterClient
         var content = await response.ReadAsStringAsync(ct);
         var result = JsonConvert.DeserializeObject<T>(content);
 
-        if (result is null) throw new OperationCanceledException("Deserialization resulted in null.", ct);
+        if (result is null) 
+            throw new InvalidOperationException("Deserialization resulted in null.");
 
         return result;
     }

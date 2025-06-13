@@ -21,7 +21,7 @@ internal class CurrencyProvidersFactory(ILifetimeScope scope) : ICurrencyProvide
         RequestsMaps.Add(typeof(FrankfurterRequests.GetLatestForCurrenciesRequest), typeof(IFrankfurterProvider));
         RequestsMaps.Add(typeof(FrankfurterRequests.GetLatestRequest), typeof(IFrankfurterProvider));
     }
-
+    
     public ICurrencyProvider GetCurrencyProvider<T>(T request) where T : ICurrencyProviderRequest
     {
         try

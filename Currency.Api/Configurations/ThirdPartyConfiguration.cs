@@ -11,8 +11,10 @@ namespace Currency.Api.Configurations;
 
 public static class ThirdPartyConfiguration
 {
-    public static void ConfigureThirdParty(this IServiceCollection services, StartupSettings startupSettings)
+    public static void AddThirdParty(this IServiceCollection services, StartupSettings startupSettings)
     {
+        services.AddHttpClient();
+        
         var frankfurterSettings = startupSettings.Integrations.Frankfurter;
         services.AddHttpClient(IntegrationConst.Frankfurter,
                 client => { client.BaseAddress = new Uri(frankfurterSettings.BaseAddress); })

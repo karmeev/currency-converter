@@ -1,31 +1,49 @@
+using Currency.Facades.Contracts;
+using Currency.Facades.Contracts.Requests;
+using Currency.Facades.Contracts.Responses;
 using Currency.Services.Contracts.Domain;
 
 namespace Currency.Facades;
 
-//design concept
 internal class CurrencyFacade(
-    IConverterService converterService,
-    IExchangeRatesService exchangeRatesService)
+    IConverterService converterService): ICurrencyFacade
 {
-    public async Task RetrieveLatestExchangeRates()
-    {
-        var currency = "USD";
+    // public async Task RetrieveLatestExchangeRatesAsync()
+    // {
+    //     var currency = "USD";
+    //
+    //     //validation here, then
+    //     await exchangeRatesService.GetLatestExchangeRates(currency);
+    // }
+    //
 
-        //validation here, then
-        await exchangeRatesService.GetLatestExchangeRates(currency);
+    public async Task<RetrieveLatestExchangeRatesResponse> RetrieveLatestExchangeRatesAsync(string currency, 
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        return new RetrieveLatestExchangeRatesResponse();
     }
 
-    public async Task ConvertToCurrency()
+    public async Task<GetExchangeRatesHistoryResponse> GetExchangeRatesHistoryAsync(GetExchangeRateHistoryRequest request, 
+        CancellationToken ct)
     {
-        var amount = 10.021m;
-        var currency = "USD";
-        var currency2 = "EUR";
-
-        //validation here, then
-        await converterService.ConvertToCurrency(amount, currency, currency2);
+        ct.ThrowIfCancellationRequested();
+        return new GetExchangeRatesHistoryResponse();
     }
 
-    public async Task GetExchangeRatesHistory()
+    public async Task<ConvertToCurrencyResponse> ConvertToCurrencyAsync(ConvertCurrencyRequest request, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        
+        //validation here
+        
+        var result = await converterService.ConvertToCurrency(request.Amount, request.FromCurrency, 
+            request.ToCurrency, ct);
+        
+        return new ConvertToCurrencyResponse
+        {
+            Amount = result.Amount,
+            Currency = result.Currency,
+        };
     }
 }

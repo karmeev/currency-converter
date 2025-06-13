@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
@@ -15,7 +16,7 @@ namespace Currency.Api.Configurations;
 
 public static class ApiConfiguration
 {
-    public static void ConfigureSettings(this IServiceCollection services, string env, out StartupSettings settings)
+    public static void AddSettings(this IServiceCollection services, string env, out StartupSettings settings)
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
@@ -42,7 +43,7 @@ public static class ApiConfiguration
         };
     }
 
-    public static void ConfigureVersioning(this IServiceCollection services)
+    public static void AddVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(options =>
             {
@@ -61,7 +62,7 @@ public static class ApiConfiguration
             });
     }
 
-    public static void ConfigureRateLimiter(this IServiceCollection services, StartupSettings settings)
+    public static void AddRateLimiter(this IServiceCollection services, StartupSettings settings)
     {
         var config = settings.RateLimiter;
         services.AddRateLimiter(options =>
@@ -88,7 +89,7 @@ public static class ApiConfiguration
         }
     }
     
-    public static void ConfigureIdentity(this IServiceCollection services, StartupSettings startupSettings)
+    public static void AddIdentity(this IServiceCollection services, StartupSettings startupSettings)
     {
         var settings = startupSettings.Jwt;
         services.AddDataProtection()
@@ -150,5 +151,33 @@ public static class ApiConfiguration
                     }
                 };
             });
+    }
+
+    public static void AddCustomBehavior(this IServiceCollection services)
+    {
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var errors = context.ModelState
+                    .Where(e => e.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                var response = new ErrorResponseScheme
+                {
+                    Error = "validation_failed",
+                    Message = "One or more validation errors occurred.",
+                    Details = errors
+                };
+
+                return new BadRequestObjectResult(response)
+                {
+                    ContentTypes = { "application/json" }
+                };
+            };
+        });
     }
 }

@@ -12,8 +12,9 @@ internal class AuthFacade(
     IUserService userService,
     ITokenService tokenService) : IAuthFacade
 {
-    public async Task<AuthResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var validationResult = validator.Validate(request.Username, request.Password);
         if (!validationResult.IsValid) return AuthResponse.Error(validationResult.Message);
 
@@ -28,8 +29,9 @@ internal class AuthFacade(
             tokenModel.ExpiresAt);
     }
 
-    public async Task<AuthResponse> RefreshTokenAsync(string token)
+    public async Task<AuthResponse> RefreshTokenAsync(string token, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         if (string.IsNullOrEmpty(token)) return AuthResponse.Error("Invalid refresh token");
         var refreshToken = await tokenService.GetRefreshTokenAsync(token);
         if (!refreshToken.Verified) return AuthResponse.Error("Refresh token is not verified");
