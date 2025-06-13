@@ -47,7 +47,7 @@ public class FrankfurterClientTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Base, Is.EqualTo("USD"));
-            Assert.That(result.Date, Is.LessThanOrEqualTo(DateTime.UtcNow.Date));
+            Assert.That(result.Date, Is.LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.Date)));
             Assert.That(result.Rates, Is.Not.Null.And.Not.Empty);
         });
     }
@@ -66,7 +66,7 @@ public class FrankfurterClientTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Base, Is.EqualTo("USD"));
-            Assert.That(result.Date, Is.LessThanOrEqualTo(DateTime.UtcNow.Date));
+            Assert.That(result.Date, Is.LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.Date)));
             Assert.That(result.Rates, Is.Not.Null.And.Not.Empty);
         });
     }
