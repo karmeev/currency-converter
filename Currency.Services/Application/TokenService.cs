@@ -48,7 +48,7 @@ internal class TokenService(
             Verified = true,
             UserId = userId,
             Token = refreshToken,
-            ExpirationDate = DateTime.Now.AddDays(settings.RefreshTokenTtlInDays),
+            ExpirationDate = DateTime.UtcNow.AddDays(settings.RefreshTokenTtlInDays),
             ExpiresAt = TimeSpan.FromDays(settings.RefreshTokenTtlInDays)
         };
         await authRepository.AddRefreshToken(token);

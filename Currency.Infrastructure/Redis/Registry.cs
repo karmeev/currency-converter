@@ -7,11 +7,13 @@ namespace Currency.Infrastructure.Redis;
 
 internal static class Registry
 {
-    public static void Register(ContainerBuilder container, RedisSettings settings)
+    public static void RegisterDependencies(ContainerBuilder container)
     {
-        container.RegisterInstance(settings).AsSelf().SingleInstance();
-
-        container.Register(_ => ConnectionMultiplexer.Connect(settings.ConnectionString))
+        container.Register(c =>
+            {
+                var connectionString = c.Resolve<InfrastructureSettings>().RedisSettings.ConnectionString;
+                return ConnectionMultiplexer.Connect(connectionString);
+            })
             .As<IConnectionMultiplexer>()
             .SingleInstance();
 

@@ -8,15 +8,16 @@ namespace Currency.Data.Repositories;
 internal class AuthRepository(IRedisContext context) : IAuthRepository
 {
     private const string AuthStorage = "auth";
+    private const string Prefix = "auth_";
 
     public async Task AddRefreshToken(RefreshToken refreshToken)
     {
-        await context.SetAsync(refreshToken.Token, refreshToken, refreshToken.ExpiresAt, AuthStorage);
+        await context.SetAsync(Prefix + refreshToken.Token, refreshToken, refreshToken.ExpiresAt, AuthStorage);
     }
 
     public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)
     {
-        var token = await context.GetAsync<RefreshTokenModel>(refreshToken, AuthStorage);
+        var token = await context.GetAsync<RefreshTokenModel>(Prefix + refreshToken, AuthStorage);
         if (token == null)
             return new RefreshToken();
 

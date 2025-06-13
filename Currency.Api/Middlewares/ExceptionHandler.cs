@@ -29,7 +29,7 @@ public class ExceptionHandler(ILogger<ExceptionHandler> logger) : IMiddleware
         //     await HandleValidationException(validationException);
         // }
     }
-    
+
     // private async Task Handle(Exception exception, HttpStatusCode statusCode)
     // {
     //     logger.LogInf(exception.Message);

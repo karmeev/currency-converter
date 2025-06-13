@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Currency.Infrastructure.JwtBearer;
 
-internal class JwtTokenGenerator(JwtSettings jwtSettings) : IJwtTokenGenerator
+internal class JwtTokenGenerator(InfrastructureSettings settings) : IJwtTokenGenerator
 {
     public IEnumerable<Claim> BuildClaims(string identifier, string username, UserRole role)
     {
@@ -25,6 +25,7 @@ internal class JwtTokenGenerator(JwtSettings jwtSettings) : IJwtTokenGenerator
 
     public AccessToken CreateAccessToken(IEnumerable<Claim> claims)
     {
+        var jwtSettings = settings.JwtSettings;
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecurityKey));
 
         var jwtToken = new JwtSecurityToken(

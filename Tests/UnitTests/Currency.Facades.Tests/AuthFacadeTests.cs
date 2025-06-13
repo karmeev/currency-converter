@@ -11,12 +11,9 @@ using ValidationResult = Currency.Facades.Validators.Results.ValidationResult;
 namespace Currency.Facades.Tests;
 
 [TestFixture]
+[Category("Unit tests")]
 public class AuthFacadeTests
 {
-    private Mock<IAuthValidator> _authValidator;
-    private Mock<IUserService> _userService;
-    private Mock<ITokenService> _tokenService;
-    
     [SetUp]
     public void Setup()
     {
@@ -24,6 +21,10 @@ public class AuthFacadeTests
         _userService = new Mock<IUserService>();
         _tokenService = new Mock<ITokenService>();
     }
+
+    private Mock<IAuthValidator> _authValidator;
+    private Mock<IUserService> _userService;
+    private Mock<ITokenService> _tokenService;
 
     [Test]
     public async Task LoginAsync_HappyPath_ShouldReturnTokens()

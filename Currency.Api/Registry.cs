@@ -1,21 +1,37 @@
 using Autofac;
 using Currency.Api.Models;
-using Currency.Api.Settings;
+using Currency.Infrastructure.Settings;
 using Currency.Services.Application.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Currency.Api;
 
 public static class Registry
 {
-    public static void RegisterDependencies(ContainerBuilder container, ApiSettings settings,
-        ConfigurationManager configurationManager)
+    public static void RegisterDependencies(ContainerBuilder container, ConfigurationManager configurationManager)
     {
+        PopulateSettings(container);
         Facades.Registry.RegisterDependencies(container);
-        Services.Registry.RegisterDependencies(container, new ServicesSettings
-        {
-            RefreshTokenTtlInDays = settings.InfrastructureSettings.JwtSettings.RefreshTokenTtlInDays
-        });
+        Services.Registry.RegisterDependencies(container);
         Data.Registry.RegisterDependencies(container, configurationManager.Get<UsersModel>().Users);
-        Infrastructure.Registry.RegisterDependencies(container, settings.InfrastructureSettings);
+        Infrastructure.Registry.RegisterDependencies(container);
+    }
+
+    private static void PopulateSettings(ContainerBuilder container)
+    {
+        container.Register(c => new ServicesSettings
+        {
+            RefreshTokenTtlInDays = c.Resolve<IOptions<JwtSettings>>().Value.RefreshTokenTtlInDays,
+        }).As<ServicesSettings>().SingleInstance();
+        
+        container.Register(c => new InfrastructureSettings
+        {
+            JwtSettings = c.Resolve<IOptions<JwtSettings>>().Value,
+            RedisSettings = c.Resolve<IOptions<RedisSettings>>().Value,
+            Integrations = new IntegrationsSettings
+            {
+                Frankfurter = c.Resolve<IOptionsMonitor<FrankfurterSettings>>().CurrentValue
+            }
+        }).As<InfrastructureSettings>().SingleInstance();
     }
 }
