@@ -1,6 +1,8 @@
 using Currency.Api.Configurations;
+using Currency.Api.Settings;
 using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
+using Currency.Infrastructure.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.CircuitBreaker;
 
@@ -14,7 +16,24 @@ public class FrankfurterClientTests
     public void Setup()
     {
         var services = new ServiceCollection();
-        services.ConfigureThirdParty();
+
+        var settings = new StartupSettings
+        {
+            Integrations = new IntegrationsSettings
+            {
+                Frankfurter = new FrankfurterSettings
+                {
+                    BaseAddress = "https://api.frankfurter.dev",
+                    TimeoutSeconds = 1,
+                    RetryCount = 1,
+                    RetryExponentialIntervalSeconds = 5,
+                    CircuitBreakerDurationBreakSeconds = 30,
+                    CircuitBreakerMaxExceptions = 6
+                }
+            }
+        };
+        
+        services.ConfigureThirdParty(settings);
         services.AddOptions();
         services.AddHttpClient();
         var provider = services.BuildServiceProvider();

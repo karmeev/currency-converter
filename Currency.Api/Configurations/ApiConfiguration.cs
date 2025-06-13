@@ -1,31 +1,42 @@
+using System.Text;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
-using Currency.Api.Exceptions;
 using Currency.Api.Settings;
+using Currency.Infrastructure.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Currency.Api.Configurations;
 
 public static class ApiConfiguration
 {
-    //TODO: add unit tests here
-    public static ApiSettings ConfigureSettings(this ConfigurationManager configurationManager, string env)
+    public static void ConfigureSettings(this IServiceCollection services, string env, out StartupSettings settings)
     {
-        var configurationRoot = new ConfigurationBuilder()
+        var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
-            .AddJsonFile($"appsettings.{env}.json", false, true)
+            .AddJsonFile($"appsettings.{env}.json", true, true)
             .AddEnvironmentVariables()
             .Build();
+        
+        services.AddOptions();
+        services.Configure<RateLimiterSettings>(configuration.GetSection("RateLimiter"));
+        services.Configure<JwtSettings>(configuration.GetSection("Infrastructure:Jwt"));
+        services.Configure<RedisSettings>(configuration.GetSection("Infrastructure:Redis"));
+        services.Configure<FrankfurterSettings>(configuration.GetSection("Infrastructure:Integrations:Frankfurter"));
 
-        configurationManager.AddConfiguration(configurationRoot);
-        try
+        settings = new StartupSettings
         {
-            var settings = configurationManager.Get<ApiSettings>();
-            return settings;
-        }
-        catch (InvalidOperationException)
-        {
-            return StartupException.ThrowIfConfigurationIncorrect<ApiSettings>();
-        }
+            RateLimiter = configuration.GetSection("RateLimiter").Get<RateLimiterSettings>(),
+            Jwt = configuration.GetSection("Infrastructure:Jwt").Get<JwtSettings>(),
+            Integrations = new IntegrationsSettings
+            {
+                Frankfurter = configuration.GetSection("Infrastructure:Integrations:Frankfurter")
+                    .Get<FrankfurterSettings>()
+            }
+        };
     }
 
     public static void ConfigureVersioning(this IServiceCollection services)
@@ -47,8 +58,9 @@ public static class ApiConfiguration
             });
     }
 
-    public static void ConfigureRateLimiter(this IServiceCollection services, RateLimiterSettings settings)
+    public static void ConfigureRateLimiter(this IServiceCollection services, StartupSettings settings)
     {
+        var config = settings.RateLimiter;
         services.AddRateLimiter(options =>
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
@@ -56,14 +68,14 @@ public static class ApiConfiguration
                 return RateLimitPartition.GetFixedWindowLimiter(GetUser(httpContext), _ =>
                     new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = settings.PermitLimit,
-                        Window = TimeSpan.FromMilliseconds(settings.DurationMilliseconds),
-                        QueueProcessingOrder = settings.QueueOrder,
-                        QueueLimit = settings.QueueLimit
+                        PermitLimit = config.PermitLimit,
+                        Window = TimeSpan.FromMilliseconds(config.DurationMilliseconds),
+                        QueueProcessingOrder = config.QueueOrder,
+                        QueueLimit = config.QueueLimit
                     });
             });
-
-            options.RejectionStatusCode = 429;
+            
+            options.RejectionStatusCode = config.RejectionStatusCode;
         });
         return;
 
@@ -71,5 +83,39 @@ public static class ApiConfiguration
         {
             return context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
         }
+    }
+    
+    public static void ConfigureIdentity(this IServiceCollection services, StartupSettings startupSettings)
+    {
+        var settings = startupSettings.Jwt;
+        services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(@"/root/.aspnet/DataProtection-Keys"))
+            .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
+            {
+                EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+            });
+
+        services.AddAuthorization();
+
+        services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = "CURRENCY";
+                options.DefaultChallengeScheme = "CURRENCY";
+            })
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = settings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = settings.Audience,
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecurityKey)),
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
     }
 }

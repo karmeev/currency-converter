@@ -7,13 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
-var settings = builder.Configuration.ConfigureSettings(builder.Environment.EnvironmentName);
-
+builder.Services.ConfigureSettings(builder.Environment.EnvironmentName, out var settings);
 builder.Services.AddControllers();
 builder.Services.ConfigureVersioning();
-builder.Services.ConfigureIdentity(settings.InfrastructureSettings.JwtSettings);
-builder.Services.ConfigureThirdParty();
-builder.Services.AddOptions();
+builder.Services.ConfigureRateLimiter(settings);
+builder.Services.ConfigureIdentity(settings);
+builder.Services.ConfigureThirdParty(settings);
 builder.Services.AddHttpClient();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -21,7 +20,7 @@ builder.Services.AddHttpClient();
 
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 {
-    Registry.RegisterDependencies(container, settings, builder.Configuration);
+    Registry.RegisterDependencies(container, builder.Configuration);
 });
 
 var app = builder.Build();

@@ -6,7 +6,7 @@ using StackExchange.Redis;
 namespace Currency.Infrastructure.Redis;
 
 internal class RedisContext(
-    RedisSettings settings,
+    InfrastructureSettings settings,
     IConnectionMultiplexer connection) : IRedisContext
 {
     private const string AuthPrefix = "auth";
@@ -27,8 +27,10 @@ internal class RedisContext(
 
     private IDatabase GetDatabase(string key)
     {
-        if (key.StartsWith(AuthPrefix)) return connection.GetDatabase(settings.RefreshTokensDatabaseNumber);
+        var redisSettings = settings.RedisSettings;
+        if (key.StartsWith(AuthPrefix)) 
+            return connection.GetDatabase(redisSettings.RefreshTokensDatabaseNumber);
 
-        return connection.GetDatabase(settings.EntitiesDatabaseNumber);
+        return connection.GetDatabase(redisSettings.EntitiesDatabaseNumber);
     }
 }

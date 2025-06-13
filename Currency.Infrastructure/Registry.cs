@@ -9,12 +9,11 @@ namespace Currency.Infrastructure;
 
 public static class Registry
 {
-    public static void RegisterDependencies(ContainerBuilder container, InfrastructureSettings settings)
+    public static void RegisterDependencies(ContainerBuilder container)
     {
-        container.RegisterInstance(settings.JwtSettings).SingleInstance();
         container.RegisterType<SecretHasher>().As<ISecretHasher>().SingleInstance();
         container.RegisterType<JwtTokenGenerator>().As<IJwtTokenGenerator>().SingleInstance();
-        Redis.Registry.RegisterDependencies(container, settings.RedisSettings);
+        Redis.Registry.RegisterDependencies(container);
         Integrations.Registry.RegisterDependencies(container);
     }
 }
