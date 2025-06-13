@@ -7,7 +7,7 @@ namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Converters;
 internal class RatesDateOnlyConverter : JsonConverter<Dictionary<DateOnly, Dictionary<string, decimal>>>
 {
     private const string Format = "yyyy-MM-dd";
-    
+
     public override Dictionary<DateOnly, Dictionary<string, decimal>> ReadJson(JsonReader reader, Type objectType,
         Dictionary<DateOnly, Dictionary<string, decimal>>? existingValue, bool hasExistingValue,
         JsonSerializer serializer)
@@ -16,17 +16,12 @@ internal class RatesDateOnlyConverter : JsonConverter<Dictionary<DateOnly, Dicti
         var result = new Dictionary<DateOnly, Dictionary<string, decimal>>();
 
         foreach (var property in obj.Properties())
-        {
             if (DateOnly.TryParseExact(property.Name, Format, CultureInfo.InvariantCulture, DateTimeStyles.None,
                     out var date))
             {
                 var innerRates = property.Value.ToObject<Dictionary<string, decimal>>(serializer);
-                if (innerRates != null)
-                {
-                    result[date] = innerRates;
-                }
+                if (innerRates != null) result[date] = innerRates;
             }
-        }
 
         return result;
     }

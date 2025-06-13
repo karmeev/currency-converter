@@ -9,7 +9,7 @@ namespace Currency.Api.Controllers;
 [Authorize(Roles = nameof(UserRole.Admin))]
 [ApiVersion("2.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
-public class StatusController: ControllerBase
+public class StatusController : ControllerBase
 {
     [HttpGet("health")]
     public IActionResult GetStatus()

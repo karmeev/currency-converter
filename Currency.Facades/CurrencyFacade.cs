@@ -9,24 +9,23 @@ internal class CurrencyFacade(
 {
     public async Task RetrieveLatestExchangeRates()
     {
-        string currency = "USD";
-        
+        var currency = "USD";
+
         //validation here, then
         await exchangeRatesService.GetLatestExchangeRates(currency);
     }
 
     public async Task ConvertToCurrency()
     {
-        decimal amount = 10.021m;
-        string currency = "USD";
-        string currency2 = "EUR";
-        
+        var amount = 10.021m;
+        var currency = "USD";
+        var currency2 = "EUR";
+
         //validation here, then
         await converterService.ConvertToCurrency(amount, currency, currency2);
     }
 
     public async Task GetExchangeRatesHistory()
     {
-        
     }
 }

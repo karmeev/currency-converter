@@ -1,3 +1,5 @@
 namespace Currency.Infrastructure.Contracts.Integrations.Providers.Base.Requests;
 
-public interface IGetHistoryRequest : ICurrencyProviderRequest { }
+public interface IGetHistoryRequest : ICurrencyProviderRequest
+{
+}

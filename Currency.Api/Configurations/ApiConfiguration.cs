@@ -2,7 +2,6 @@ using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Currency.Api.Exceptions;
 using Currency.Api.Settings;
-using Currency.Infrastructure.Settings;
 
 namespace Currency.Api.Configurations;
 

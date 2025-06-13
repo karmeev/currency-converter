@@ -5,11 +5,9 @@ namespace Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 
 public class GetExchangeRatesHistoryResponse
 {
-    [JsonProperty("amount")]
-    public decimal Amount { get; set; }
+    [JsonProperty("amount")] public decimal Amount { get; set; }
 
-    [JsonProperty("base")]
-    public string Base { get; set; }
+    [JsonProperty("base")] public string Base { get; set; }
 
     [JsonProperty("start_date")]
     [JsonConverter(typeof(DateOnlyConverter))]
