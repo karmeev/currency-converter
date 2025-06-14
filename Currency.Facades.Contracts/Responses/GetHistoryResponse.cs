@@ -3,7 +3,7 @@ using Currency.Facades.Contracts.Dtos;
 
 namespace Currency.Facades.Contracts.Responses;
 
-public class GetExchangeRatesHistoryResponse
+public class GetHistoryResponse
 {
     public string Currency { get; set; }
     public DateTime StartDate { get; set; }
@@ -12,17 +12,16 @@ public class GetExchangeRatesHistoryResponse
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
 
-    public static GetExchangeRatesHistoryResponse BuildResponse(string currency, DateTime startDate, DateTime endDate, 
+    public GetHistoryResponse() {}
+    
+    public GetHistoryResponse(string currency, DateTime startDate, DateTime endDate, 
         PagedList<RatesHistoryPartDto> history)
     {
-        return new GetExchangeRatesHistoryResponse
-        {
-            Currency = currency,
-            StartDate = startDate,
-            EndDate = endDate,
-            History = history.Items,
-            PageNumber = history.PageNumber,
-            PageSize = history.PageSize
-        };
+        Currency = currency;
+        StartDate = startDate;
+        EndDate = endDate;
+        History = history.Items;
+        PageNumber = history.PageNumber;
+        PageSize = history.PageSize;
     }
 }

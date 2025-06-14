@@ -1,5 +1,6 @@
 using Currency.Api.Configurations;
 using Currency.Api.Settings;
+using Currency.Common.Providers;
 using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Settings;
@@ -39,7 +40,7 @@ public class FrankfurterClientTests
         var provider = services.BuildServiceProvider();
 
         var factory = provider.GetRequiredService<IHttpClientFactory>();
-        var client = factory.CreateClient(IntegrationConst.Frankfurter);
+        var client = factory.CreateClient(ProvidersConst.Frankfurter);
 
         _client = client;
     }

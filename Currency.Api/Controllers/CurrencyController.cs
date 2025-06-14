@@ -13,7 +13,7 @@ namespace Currency.Api.Controllers;
 public class CurrencyController(ICurrencyFacade facade) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetExchangeRateHistoryAsync([FromQuery] GetExchangeRateHistoryRequest request)
+    public async Task<IActionResult> GetExchangeRateHistoryAsync([FromQuery] GetHistoryRequest request)
     {
         var response = await facade.GetExchangeRatesHistoryAsync(request, HttpContext.RequestAborted);
         return Ok(response);
@@ -27,7 +27,7 @@ public class CurrencyController(ICurrencyFacade facade) : ControllerBase
     }
     
     [HttpPost("convert")]
-    public async Task<IActionResult> ConvertCurrencyAsync([FromQuery] ConvertCurrencyRequest request)
+    public async Task<IActionResult> ConvertCurrencyAsync([FromQuery] ConvertToCurrencyRequest request)
     {
         var response = await facade.ConvertToCurrencyAsync(request, HttpContext.RequestAborted);
         return Ok(response);

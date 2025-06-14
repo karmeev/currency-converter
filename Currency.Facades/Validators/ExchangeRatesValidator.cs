@@ -1,5 +1,4 @@
-using System.Globalization;
-using System.Text;
+using ISO._4217;
 using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Validators.Results;
 
@@ -7,7 +6,24 @@ namespace Currency.Facades.Validators;
 
 public static class ExchangeRatesValidator
 {
-    public static ValidationResult ValidateRequest(GetExchangeRateHistoryRequest request, out string[] errors)
+    public static ValidationResult ValidateRequest<T>(T request, out string[] errors)
+    {
+        switch (request)
+        {
+            case GetHistoryRequest historyRequest:
+                return ValidateRequest(historyRequest, out errors);
+            case ConvertToCurrencyRequest convertRequest:
+                return ValidateRequest(convertRequest, out errors);
+            case string latestRatesRequest:
+                errors = [];
+                return ValidateRequest(latestRatesRequest);
+            default:
+                errors = [];
+                return new ValidationResult(false, string.Empty);
+        }
+    }
+
+    private static ValidationResult ValidateRequest(GetHistoryRequest request, out string[] errors)
     {
         var failedResult = new ValidationResult(false, "Invalid request to get history");
         
@@ -27,7 +43,7 @@ public static class ExchangeRatesValidator
             validationErrors.Add("The end date must be after or equal the start date.");
         }
         
-        if (request.EndDate > DateOnly.FromDateTime(DateTime.UtcNow.Date))
+        if (request.EndDate > DateTime.UtcNow.Date)
         {
             validationErrors.Add("The end date can not be in future.");
         }
@@ -40,8 +56,8 @@ public static class ExchangeRatesValidator
 
         return ValidationResult.Success;
     }
-    
-    public static ValidationResult ValidateRequest(ConvertCurrencyRequest request, out string[] errors)
+
+    private static ValidationResult ValidateRequest(ConvertToCurrencyRequest request, out string[] errors)
     {
         var bannedCurrencies = new HashSet<string> { "TRY", "PLN", "THB", "MXN" };
         
@@ -88,7 +104,7 @@ public static class ExchangeRatesValidator
         return ValidationResult.Success;
     }
 
-    public static ValidationResult ValidateRequest(string currency)
+    private static ValidationResult ValidateRequest(string currency)
     {
         if (!IsValidCurrency(currency))
         {
@@ -102,19 +118,10 @@ public static class ExchangeRatesValidator
     {
         if (string.IsNullOrWhiteSpace(code) || code.Length != 3)
             return false;
+        
+        var currencies = CurrencyCodesResolver.GetCurrenciesByCode(code);
+        if (!currencies.Any()) return false;
 
-        try
-        {
-            var cultures = CultureInfo
-                .GetCultures(CultureTypes.SpecificCultures)
-                .Select(c => new RegionInfo(c.LCID));
-
-            return cultures.Any(r => r.ISOCurrencySymbol.Equals(code, StringComparison.OrdinalIgnoreCase));
-        }
-        catch
-        {
-            return false;
-        }
+        return true;
     }
-
 }

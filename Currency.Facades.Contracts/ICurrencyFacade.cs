@@ -5,8 +5,8 @@ namespace Currency.Facades.Contracts;
 
 public interface ICurrencyFacade
 {
-    Task<RetrieveLatestExchangeRatesResponse> RetrieveLatestExchangeRatesAsync(string currency, CancellationToken ct);
-    Task<GetExchangeRatesHistoryResponse> GetExchangeRatesHistoryAsync(GetExchangeRateHistoryRequest request, 
+    Task<RetrieveLatestRatesResponse> RetrieveLatestExchangeRatesAsync(string currency, CancellationToken ct);
+    Task<GetHistoryResponse> GetExchangeRatesHistoryAsync(GetHistoryRequest request, 
         CancellationToken ct);
-    Task<ConvertToCurrencyResponse> ConvertToCurrencyAsync(ConvertCurrencyRequest request, CancellationToken ct);
+    Task<ConvertToCurrencyResponse> ConvertToCurrencyAsync(ConvertToCurrencyRequest request, CancellationToken ct);
 }

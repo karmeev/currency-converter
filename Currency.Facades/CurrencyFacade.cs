@@ -1,6 +1,6 @@
-using System.Threading.Channels;
 using Currency.Common.Pagination;
-using Currency.Domain.Rates;
+using Currency.Common.Providers;
+using Currency.Data.Contracts;
 using Currency.Facades.Contracts;
 using Currency.Facades.Contracts.Dtos;
 using Currency.Facades.Contracts.Exceptions;
@@ -8,6 +8,7 @@ using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Contracts.Responses;
 using Currency.Facades.Converters;
 using Currency.Facades.Validators;
+using Currency.Services.Contracts.Application;
 using Currency.Services.Contracts.Domain;
 
 namespace Currency.Facades;
@@ -15,89 +16,100 @@ namespace Currency.Facades;
 internal class CurrencyFacade(
     IConverterService converterService,
     IExchangeRatesService exchangeRatesService,
-    ChannelWriter<ExchangeRatesHistory> channel): ICurrencyFacade
+    IPublisherService publisherService,
+    IExchangeRatesRepository ratesRepository): ICurrencyFacade
 {
-    public async Task<RetrieveLatestExchangeRatesResponse> RetrieveLatestExchangeRatesAsync(string currency, 
+    public async Task<RetrieveLatestRatesResponse> RetrieveLatestExchangeRatesAsync(string currency, 
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+
+        Validate(currency);
         
-        var validationResult = ExchangeRatesValidator.ValidateRequest(currency);
-        if (!validationResult.IsValid)
+        var id = GetIdWithProviderPrefix(currency);
+        var existedRates = await ratesRepository.GetExchangeRates(id, ct);
+        if (existedRates is not null)
         {
-            return ValidationException.Throw<RetrieveLatestExchangeRatesResponse>(validationResult.Message);
+            return new RetrieveLatestRatesResponse(existedRates.CurrentCurrency, existedRates.LastDate,
+                existedRates.Rates);
         }
-        
-        //TODO: what about cache?
         
         var rates = await exchangeRatesService.GetLatestExchangeRates(currency, ct);
         
-        return new RetrieveLatestExchangeRatesResponse
-        {
-            CurrentCurrency = rates.CurrentCurrency,
-            LastDate = rates.LastDate,
-            Rates = rates.Rates
-        };
+        await publisherService.Publish(rates, ct);
+        
+        return new RetrieveLatestRatesResponse(rates.CurrentCurrency, rates.LastDate, rates.Rates);
     }
 
-    public async Task<GetExchangeRatesHistoryResponse> GetExchangeRatesHistoryAsync(GetExchangeRateHistoryRequest request, 
+    public async Task<GetHistoryResponse> GetExchangeRatesHistoryAsync(GetHistoryRequest request, 
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-
-        var validationResult = ExchangeRatesValidator.ValidateRequest(request, out var errors);
-        if (!validationResult.IsValid)
-        {
-            return ValidationException.Throw<GetExchangeRatesHistoryResponse>(validationResult.Message, errors);
-        }
         
-        //TODO: fix it
-        var startDate = new DateTime(request.StartDate.Year, request.StartDate.Month, request.StartDate.Day);
-        var endDate = new DateTime(request.EndDate.Year, request.EndDate.Month, request.EndDate.Day);
-        //
+        Validate(request);
         
         var existedHistory = await exchangeRatesService.GetExistedRatesHistory(
-            request.Currency, startDate, endDate, request.Page, request.PageSize, ct);
+            request.Currency, request.StartDate, request.EndDate, request.Page, request.PageSize, ct);
         if (existedHistory.Count > 0)
         {
             var existedParts = DtoConverter.ConvertToRatesHistoryPartDto(existedHistory);
             var existedPage = PagedList<RatesHistoryPartDto>.Create(existedParts, 
                 request.Page, request.PageSize);
             
-            return GetExchangeRatesHistoryResponse.BuildResponse(request.Currency, startDate, endDate, existedPage);
+            return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, 
+                existedPage);
         }
         
         var history = await exchangeRatesService.GetExchangeRatesHistory(request.Currency, 
-            startDate, endDate, ct);
-
-        await channel.WriteAsync(history, CancellationToken.None);
+            request.StartDate, request.EndDate, ct);
+        
+        await publisherService.Publish(history, ct);
         
         var parts = DtoConverter.ConvertToRatesHistoryPartDto(history);
         var page = PagedList<RatesHistoryPartDto>.CreateFromRaw(parts, request.Page, 
             request.PageSize);
         
-        return GetExchangeRatesHistoryResponse.BuildResponse(request.Currency, startDate, endDate, page);
+        return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, page);
     }
 
-    public async Task<ConvertToCurrencyResponse> ConvertToCurrencyAsync(ConvertCurrencyRequest request, CancellationToken ct)
+    public async Task<ConvertToCurrencyResponse> ConvertToCurrencyAsync(ConvertToCurrencyRequest request, 
+        CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         
-        var validationResult = ExchangeRatesValidator.ValidateRequest(request, out var errors);
-        if (!validationResult.IsValid)
-        {
-            return ValidationException.Throw<ConvertToCurrencyResponse>(validationResult.Message, errors);
-        }
+        Validate(request);
         
-        //TODO: what about cache?
+        var id = GetIdWithProviderPrefix($"{request.FromCurrency}:{request.ToCurrency}");
+        var convertedCurrency = await ratesRepository.GetCurrencyConversionAsync(id, ct);
+        if (convertedCurrency is not null)
+        {
+            return new ConvertToCurrencyResponse(convertedCurrency.Amount, convertedCurrency.ToCurrency);
+        }
         
         var result = await converterService.ConvertToCurrency(request.Amount, request.FromCurrency, 
             request.ToCurrency, ct);
         
-        return new ConvertToCurrencyResponse
+        await publisherService.Publish(result, ct);
+        
+        return new ConvertToCurrencyResponse(result.Amount, result.ToCurrency);
+    }
+
+    private static void Validate<TRequest>(TRequest request)
+    {
+        var result = ExchangeRatesValidator.ValidateRequest(request, out var validationErrors);
+        if (!result.IsValid)
         {
-            Amount = result.Amount,
-            Currency = result.Currency,
-        };
+            ValidationException.Throw(result.Message, validationErrors);
+        }
+    }
+
+    /// <summary>
+    /// This is a helper method to get the ID with the provider prefix.
+    /// After integrating the next provider, it can be abolished by the dynamic selection logic
+    /// using the ICurrencyProvidersFactory.
+    /// </summary>
+    private static string GetIdWithProviderPrefix(string id)
+    {
+        return $"{ProvidersConst.Frankfurter}:{id}";
     }
 }

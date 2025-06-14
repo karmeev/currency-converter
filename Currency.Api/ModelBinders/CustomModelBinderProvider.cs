@@ -8,12 +8,12 @@ public class CustomModelBinderProvider : IModelBinderProvider
 {
     public IModelBinder GetBinder(ModelBinderProviderContext context)
     {
-        if (context.Metadata.ModelType == typeof(GetExchangeRateHistoryRequest))
+        if (context.Metadata.ModelType == typeof(GetHistoryRequest))
         {
             return new BinderTypeModelBinder(typeof(GetExchangeRateHistoryRequestBinder));
         }
         
-        if (context.Metadata.ModelType == typeof(ConvertCurrencyRequest))
+        if (context.Metadata.ModelType == typeof(ConvertToCurrencyRequest))
         {
             return new BinderTypeModelBinder(typeof(ConvertCurrencyRequestBinder));
         }

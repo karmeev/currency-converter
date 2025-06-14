@@ -1,3 +1,4 @@
+using Currency.Common.Providers;
 using Currency.Data.Contracts;
 using Currency.Data.Contracts.Entries;
 using Currency.Domain.Rates;
@@ -32,7 +33,7 @@ public class ExchangeRatesService(
     public async Task<List<ExchangeRateEntry>> GetExistedRatesHistory(string currency, DateTime start, DateTime end,
         int page, int size, CancellationToken ct = default)
     {
-        var key = $"Frankfurter:{currency}:{start:yyyyMMddHHmmss}:{end:yyyyMMddHHmmss}";
+        var key = $"{ProvidersConst.Frankfurter}:{currency}:{start:yyyyMMddHHmmss}:{end:yyyyMMddHHmmss}";
 
         var entries = await exchangeRatesHistoryRepository.GetRateHistoryPagedAsync(key, page, size, ct);
         return entries

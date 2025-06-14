@@ -9,9 +9,9 @@ public class ConvertCurrencyRequestBinder : IModelBinder
     {
         var query = context.HttpContext.Request.Query;
 
-        var request = new ConvertCurrencyRequest();
+        var request = new ConvertToCurrencyRequest();
         
-        if (!int.TryParse(query["amount"], out var amount))
+        if (!decimal.TryParse(query["amount"], out var amount))
         {
             context.ModelState.AddModelError("amount", "Invalid or missing amount");
         }

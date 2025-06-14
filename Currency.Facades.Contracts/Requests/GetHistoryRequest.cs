@@ -1,10 +1,10 @@
 namespace Currency.Facades.Contracts.Requests;
 
-public class GetExchangeRateHistoryRequest
+public class GetHistoryRequest
 {
     public int Page { get; set; }
     public int PageSize { get; set; }
     public string Currency { get; set; } = "EUR";
-    public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
 }

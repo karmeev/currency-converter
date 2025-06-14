@@ -6,7 +6,7 @@ public class ValidationException(string message) : Exception(message)
     
     public string[] ErrorMessages { get; private set; }
     
-    public static T Throw<T>(string message)
+    public static void Throw(string message)
     {
         if (string.IsNullOrEmpty(message))
             message = DefaultMessage;
@@ -14,11 +14,11 @@ public class ValidationException(string message) : Exception(message)
         throw new ValidationException(message);
     }
     
-    public static T Throw<T>(string message, string[] errors)
+    public static void Throw(string message, string[] errors)
     {
         if (errors.Length == 0)
         {
-            return Throw<T>(message);
+            Throw(message);
         }
         
         throw new ValidationException(message)

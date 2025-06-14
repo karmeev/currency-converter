@@ -1,8 +1,8 @@
 namespace Currency.Facades.Contracts.Requests;
 
-public class ConvertCurrencyRequest
+public class ConvertToCurrencyRequest
 {
-    public int Amount { get; set; }
+    public decimal Amount { get; set; }
     public string FromCurrency { get; set; }
     public string ToCurrency { get; set; }
 }
