@@ -3,9 +3,11 @@ using Currency.Common.Pagination;
 using Currency.Domain.Rates;
 using Currency.Facades.Contracts;
 using Currency.Facades.Contracts.Dtos;
+using Currency.Facades.Contracts.Exceptions;
 using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Contracts.Responses;
 using Currency.Facades.Converters;
+using Currency.Facades.Validators;
 using Currency.Services.Contracts.Domain;
 
 namespace Currency.Facades;
@@ -20,7 +22,12 @@ internal class CurrencyFacade(
     {
         ct.ThrowIfCancellationRequested();
         
-        //validation here
+        var validationResult = ExchangeRatesValidator.ValidateRequest(currency);
+        if (!validationResult.IsValid)
+        {
+            return ValidationException.Throw<RetrieveLatestExchangeRatesResponse>(validationResult.Message);
+        }
+        
         //TODO: what about cache?
         
         var rates = await exchangeRatesService.GetLatestExchangeRates(currency, ct);
@@ -37,8 +44,12 @@ internal class CurrencyFacade(
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        
-        //validation here
+
+        var validationResult = ExchangeRatesValidator.ValidateRequest(request, out var errors);
+        if (!validationResult.IsValid)
+        {
+            return ValidationException.Throw<GetExchangeRatesHistoryResponse>(validationResult.Message, errors);
+        }
         
         //TODO: fix it
         var startDate = new DateTime(request.StartDate.Year, request.StartDate.Month, request.StartDate.Day);
@@ -72,7 +83,12 @@ internal class CurrencyFacade(
     {
         ct.ThrowIfCancellationRequested();
         
-        //validation here
+        var validationResult = ExchangeRatesValidator.ValidateRequest(request, out var errors);
+        if (!validationResult.IsValid)
+        {
+            return ValidationException.Throw<ConvertToCurrencyResponse>(validationResult.Message, errors);
+        }
+        
         //TODO: what about cache?
         
         var result = await converterService.ConvertToCurrency(request.Amount, request.FromCurrency, 

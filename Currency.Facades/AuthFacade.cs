@@ -8,14 +8,13 @@ using Currency.Services.Contracts.Application;
 namespace Currency.Facades;
 
 internal class AuthFacade(
-    IAuthValidator validator,
     IUserService userService,
     ITokenService tokenService) : IAuthFacade
 {
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var validationResult = validator.Validate(request.Username, request.Password);
+        var validationResult = AuthValidator.Validate(request.Username, request.Password);
         if (!validationResult.IsValid) return AuthResponse.Error(validationResult.Message);
 
         var model = new LoginModel(request.Username, request.Password);

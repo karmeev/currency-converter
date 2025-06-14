@@ -1,3 +1,7 @@
+using System.Net;
+using Currency.Api.Schemes;
+using Currency.Facades.Contracts.Exceptions;
+
 namespace Currency.Api.Middlewares;
 
 public static class ExceptionHandlerExtensions
@@ -16,69 +20,27 @@ public class ExceptionHandler(ILogger<ExceptionHandler> logger) : IMiddleware
     {
         _context = context;
 
-        // try
-        // {
-        //     await next(context);
-        // }
-        // catch (AuthenticationException authException)
-        // {
-        //     await HandleAuthenticationException(authException);
-        // }
-        // catch (ValidationException validationException)
-        // {
-        //     await HandleValidationException(validationException);
-        // }
+        try
+        {
+            await next(context);
+        }
+        catch (ValidationException validationException)
+        {
+            await HandleValidationException(validationException);
+        }
     }
-
-    // private async Task Handle(Exception exception, HttpStatusCode statusCode)
-    // {
-    //     logger.LogInf(exception.Message);
-    //
-    //     _context.Response.StatusCode = (int)statusCode;
-    //
-    //     await _context.Response.WriteAsJsonAsync(new
-    //     {
-    //         exception.Message,
-    //     });
-    // }
-    //
-    // private async Task Handle(Exception exception, HttpStatusCode statusCode, string uiMessage)
-    // {
-    //     logger.LogInf(exception.Message);
-    //
-    //     _context.Response.StatusCode = (int)statusCode;
-    //
-    //     await _context.Response.WriteAsJsonAsync(new
-    //     {
-    //         Message = exception.Message,
-    //         UIMessage = uiMessage,
-    //     });
-    // }
-    //
-    // private async Task HandleAuthenticationException(AuthenticationException authenticationException)
-    // {
-    //     logger.LogInf(authenticationException.Message);
-    //
-    //     _context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-    //
-    //     await _context.Response.WriteAsJsonAsync(new
-    //     {
-    //         Message = authenticationException.Message,
-    //         UIMessage = authenticationException.UIMessage,
-    //     });
-    // }
-    //
-    // private async Task HandleValidationException(ValidationException validationException)
-    // {
-    //     logger.LogWrn(validationException.Message);
-    //
-    //     _context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-    //
-    //     await _context.Response.WriteAsJsonAsync(new
-    //     {
-    //         validationException.Message,
-    //         validationException.UIMessage,
-    //         validationException.ValidationSource
-    //     });
-    // }
+    
+    private async Task HandleValidationException(ValidationException validationException)
+    {
+        //TODO: add LogWrn with message
+    
+        _context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+    
+        await _context.Response.WriteAsJsonAsync(new ErrorResponseScheme
+        {
+            Error = "validation_failed",
+            Message = validationException.Message,
+            Details = validationException.ErrorMessages
+        });
+    }
 }

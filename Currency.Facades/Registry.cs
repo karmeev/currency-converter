@@ -10,6 +10,5 @@ public static class Registry
     {
         container.RegisterType<AuthFacade>().As<IAuthFacade>();
         container.RegisterType<CurrencyFacade>().As<ICurrencyFacade>();
-        container.RegisterType<AuthValidator>().As<IAuthValidator>().SingleInstance();
     }
 }

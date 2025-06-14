@@ -3,6 +3,7 @@ using Autofac.Extensions.DependencyInjection;
 using Currency.Api;
 using Currency.Api.BackgroundServices;
 using Currency.Api.Configurations;
+using Currency.Api.Middlewares;
 using Currency.Api.ModelBinders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,7 @@ builder.Services.AddIdentity(settings);
 builder.Services.AddCustomBehavior();
 builder.Services.AddThirdParty(settings);
 builder.Services.AddHostedService<ConsumersStartupBackgroundService>();
+builder.Services.AddTransient<ExceptionHandler>();
 
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 {
@@ -28,6 +30,7 @@ builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 
 var app = builder.Build();
 app.UseHttpsRedirection();
+app.UseCustomExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
