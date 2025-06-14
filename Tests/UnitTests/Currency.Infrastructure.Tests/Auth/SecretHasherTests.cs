@@ -1,4 +1,5 @@
 using Currency.Infrastructure.Auth;
+using Currency.Infrastructure.Tests.Utility;
 
 namespace Currency.Infrastructure.Tests.Auth;
 
@@ -13,6 +14,8 @@ public class SecretHasherTests
     [Test]
     public void Hash_HappyPath_ShouldReturnHashedString()
     {
+        Test.StartTest();
+        
         //Arrange
         var sut = new SecretHasher();
 
@@ -26,5 +29,7 @@ public class SecretHasherTests
             Assert.That(encoded, Is.Not.Null.Or.Empty);
             Assert.That(encoded2, Is.Not.Null.Or.Empty);
         });
+        
+        Test.CompleteTest();
     }
 }

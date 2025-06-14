@@ -1,6 +1,7 @@
 using Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
+using Currency.Infrastructure.Tests.Utility;
 using Moq;
 
 namespace Currency.Infrastructure.Tests.Integrations.Providers.Frankfurter;
@@ -20,6 +21,8 @@ public class FrankfurterProviderTests
     [Test]
     public async Task GetLatestAsync_HappyPath_ReturnsExchangeRates()
     {
+        Test.StartTest();
+        
         //Arrange
         const string currency = "USD";
         var rate = new { Currency = "EUR", Amount = 1.0042m };
@@ -53,11 +56,15 @@ public class FrankfurterProviderTests
             Assert.That(result.Rates.First().Key, Is.EqualTo(rate.Currency));
             Assert.That(result.Rates.First().Value, Is.EqualTo(rate.Amount));
         });
+        
+        Test.CompleteTest();
     }
     
     [Test]
     public async Task GetLatestForCurrenciesAsync_HappyPath_ReturnsExchangeRates()
     {
+        Test.StartTest();
+        
         //Arrange
         const string currency = "USD";
         var rates = new Dictionary<string, decimal>
@@ -92,11 +99,15 @@ public class FrankfurterProviderTests
             Assert.That(result.Rates.First().Key, Is.EqualTo("EUR"));
             Assert.That(result.Rates.First().Value, Is.EqualTo(1.0042m));
         });
+        
+        Test.CompleteTest();
     }
     
     [Test]
     public async Task GetHistoryAsync_HappyPath_ReturnsExchangeRatesHistory()
     {
+        Test.StartTest();
+        
         //Arrange
         const string currency = "USD";
         var startDate = DateTime.UtcNow.Date.AddDays(-1);
@@ -133,5 +144,7 @@ public class FrankfurterProviderTests
             Assert.That(result.StartDate, Is.EqualTo(startDate));
             Assert.That(result.EndDate, Is.EqualTo(startDate.AddDays(-1)));
         });
+        
+        Test.CompleteTest();
     }
 }

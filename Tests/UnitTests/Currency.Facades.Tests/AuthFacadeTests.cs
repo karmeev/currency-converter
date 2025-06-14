@@ -3,6 +3,7 @@ using Bogus;
 using Currency.Domain.Login;
 using Currency.Domain.Users;
 using Currency.Facades.Tests.Fakes;
+using Currency.Facades.Tests.Utility;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
 using Moq;
@@ -27,6 +28,8 @@ public class AuthFacadeTests
     [Test]
     public async Task LoginAsync_HappyPath_ShouldReturnTokens()
     {
+        Test.StartTest();
+        
         //Arrange
         var request = FakeRequests.GenerateLoginRequest();
 
@@ -64,11 +67,15 @@ public class AuthFacadeTests
             Assert.That(result.AccessToken, Is.Not.Null.Or.Empty);
             Assert.That(result.RefreshToken, Is.Not.Null.Or.Empty);
         });
+        
+        Test.CompleteTest();
     }
 
     [Test]
     public async Task RefreshTokenAsync_HappyPath_ShouldReturnTokens()
     {
+        Test.StartTest();
+        
         //Arrange
         var request = new Faker().Random.Hash();
 
@@ -109,5 +116,7 @@ public class AuthFacadeTests
             Assert.That(result.AccessToken, Is.Not.Null.Or.Empty);
             Assert.That(result.RefreshToken, Is.Not.Null.Or.Empty);
         });
+        
+        Test.CompleteTest();
     }
 }

@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0"/>
         <PackageReference Include="ISO.4217.CurrencyCodes" Version="1.0.10" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>

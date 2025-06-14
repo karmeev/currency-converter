@@ -10,10 +10,12 @@ using Currency.Facades.Converters;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
 using Currency.Services.Contracts.Domain;
+using Microsoft.Extensions.Logging;
 
 namespace Currency.Facades;
 
 internal class CurrencyFacade(
+    ILogger<CurrencyFacade> logger,
     IConverterService converterService,
     IExchangeRatesService exchangeRatesService,
     IPublisherService publisherService,
@@ -34,6 +36,7 @@ internal class CurrencyFacade(
                 existedRates.Rates);
         }
         
+        logger.LogInformation("Cache is empty; Making a live request with currency: {currency}", currency);
         var rates = await exchangeRatesService.GetLatestExchangeRates(currency, ct);
         
         await publisherService.Publish(rates, ct);
@@ -60,6 +63,9 @@ internal class CurrencyFacade(
                 existedPage);
         }
         
+        logger.LogInformation("Cache is empty; Making a live request with currency: {currency}, Period: {start} - {end}", 
+            request.Currency, request.StartDate, request.EndDate);
+        
         var history = await exchangeRatesService.GetExchangeRatesHistory(request.Currency, 
             request.StartDate, request.EndDate, ct);
         
@@ -85,6 +91,9 @@ internal class CurrencyFacade(
         {
             return new ConvertToCurrencyResponse(convertedCurrency.Amount, convertedCurrency.ToCurrency);
         }
+        
+        logger.LogInformation("Cache is empty; Making a live request with currencies: {currency1} - {currency2}", 
+            request.FromCurrency, request.ToCurrency);
         
         var result = await converterService.ConvertToCurrency(request.Amount, request.FromCurrency, 
             request.ToCurrency, ct);
