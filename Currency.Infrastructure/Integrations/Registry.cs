@@ -1,4 +1,5 @@
 using Autofac;
+using Currency.Common.Providers;
 using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Integrations.Providers;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
@@ -15,7 +16,7 @@ internal static class Registry
         container.Register<IFrankfurterClient>(ctx =>
             {
                 var httpClientFactory = ctx.Resolve<IHttpClientFactory>();
-                var client = httpClientFactory.CreateClient(IntegrationConst.Frankfurter);
+                var client = httpClientFactory.CreateClient(ProvidersConst.Frankfurter);
                 var settings = ctx.Resolve<InfrastructureSettings>().Integrations.Frankfurter;
 
                 client.BaseAddress = settings.BaseAddressUri;

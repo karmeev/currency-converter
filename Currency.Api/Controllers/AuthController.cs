@@ -13,7 +13,7 @@ public class AuthController(IAuthFacade facade) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
-        var response = await facade.LoginAsync(request);
+        var response = await facade.LoginAsync(request, HttpContext.RequestAborted);
         if (!response.Success)
             return BadRequest(response.ErrorMessage);
 
@@ -28,7 +28,7 @@ public class AuthController(IAuthFacade facade) : ControllerBase
     [HttpPost("refreshToken")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        var response = await facade.RefreshTokenAsync(request.Token);
+        var response = await facade.RefreshTokenAsync(request.Token, HttpContext.RequestAborted);
         if (!response.Success)
             return BadRequest(response.ErrorMessage);
 

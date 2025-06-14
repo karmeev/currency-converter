@@ -9,6 +9,6 @@ public static class Registry
     public static void RegisterDependencies(ContainerBuilder container)
     {
         container.RegisterType<AuthFacade>().As<IAuthFacade>();
-        container.RegisterType<AuthValidator>().As<IAuthValidator>().SingleInstance();
+        container.RegisterType<CurrencyFacade>().As<ICurrencyFacade>();
     }
 }

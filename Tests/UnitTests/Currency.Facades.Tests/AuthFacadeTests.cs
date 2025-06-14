@@ -17,12 +17,10 @@ public class AuthFacadeTests
     [SetUp]
     public void Setup()
     {
-        _authValidator = new Mock<IAuthValidator>();
         _userService = new Mock<IUserService>();
         _tokenService = new Mock<ITokenService>();
     }
-
-    private Mock<IAuthValidator> _authValidator;
+    
     private Mock<IUserService> _userService;
     private Mock<ITokenService> _tokenService;
 
@@ -31,9 +29,6 @@ public class AuthFacadeTests
     {
         //Arrange
         var request = FakeRequests.GenerateLoginRequest();
-
-        _authValidator.Setup(x => x.Validate(request.Username, request.Password))
-            .Returns(ValidationResult.Success);
 
         var user = new User
         {
@@ -53,10 +48,10 @@ public class AuthFacadeTests
             }));
         _tokenService.Setup(x => x.AddRefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()));
 
-        var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
+        var sut = new AuthFacade(_userService.Object, _tokenService.Object);
 
         //Act
-        var result = await sut.LoginAsync(request);
+        var result = await sut.LoginAsync(request, CancellationToken.None);
 
         //Assert
         Assert.Multiple(() =>
@@ -75,7 +70,7 @@ public class AuthFacadeTests
     public async Task RefreshTokenAsync_HappyPath_ShouldReturnTokens()
     {
         //Arrange
-        var req = new Faker().Random.Hash();
+        var request = new Faker().Random.Hash();
 
         var user = new User
         {
@@ -98,10 +93,10 @@ public class AuthFacadeTests
                     new(ClaimTypes.Name, user.Username)
                 }));
 
-        var sut = new AuthFacade(_authValidator.Object, _userService.Object, _tokenService.Object);
+        var sut = new AuthFacade(_userService.Object, _tokenService.Object);
 
         //Act
-        var result = await sut.RefreshTokenAsync(req);
+        var result = await sut.RefreshTokenAsync(request, CancellationToken.None);
 
         //Assert
         Assert.Multiple(() =>

@@ -1,5 +1,6 @@
 using Autofac;
 using Currency.Infrastructure.Contracts.Databases;
+using Currency.Infrastructure.Contracts.Databases.Redis;
 using Currency.Infrastructure.Settings;
 using StackExchange.Redis;
 

@@ -1,19 +1,22 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Currency.Api.Schemes;
 using Currency.Api.Settings;
 using Currency.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace Currency.Api.Configurations;
 
 public static class ApiConfiguration
 {
-    public static void ConfigureSettings(this IServiceCollection services, string env, out StartupSettings settings)
+    public static void AddSettings(this IServiceCollection services, string env, out StartupSettings settings)
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
@@ -29,6 +32,7 @@ public static class ApiConfiguration
 
         settings = new StartupSettings
         {
+            DataProtectionKeysDirectory = configuration.GetSection("DataProtectionKeysDirectory").Value,
             RateLimiter = configuration.GetSection("RateLimiter").Get<RateLimiterSettings>(),
             Jwt = configuration.GetSection("Infrastructure:Jwt").Get<JwtSettings>(),
             Integrations = new IntegrationsSettings
@@ -39,7 +43,7 @@ public static class ApiConfiguration
         };
     }
 
-    public static void ConfigureVersioning(this IServiceCollection services)
+    public static void AddVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(options =>
             {
@@ -58,7 +62,7 @@ public static class ApiConfiguration
             });
     }
 
-    public static void ConfigureRateLimiter(this IServiceCollection services, StartupSettings settings)
+    public static void AddRateLimiter(this IServiceCollection services, StartupSettings settings)
     {
         var config = settings.RateLimiter;
         services.AddRateLimiter(options =>
@@ -85,11 +89,11 @@ public static class ApiConfiguration
         }
     }
     
-    public static void ConfigureIdentity(this IServiceCollection services, StartupSettings startupSettings)
+    public static void AddIdentity(this IServiceCollection services, StartupSettings startupSettings)
     {
         var settings = startupSettings.Jwt;
         services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(@"/root/.aspnet/DataProtection-Keys"))
+            .PersistKeysToFileSystem(new DirectoryInfo(startupSettings.DataProtectionKeysDirectory))
             .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
             {
                 EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
@@ -100,8 +104,7 @@ public static class ApiConfiguration
 
         services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "CURRENCY";
-                options.DefaultChallengeScheme = "CURRENCY";
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -116,6 +119,65 @@ public static class ApiConfiguration
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
                 };
+                
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var response = new ErrorResponseScheme
+                        {
+                            Error = "unauthorized",
+                            Message = "Authentication is required to access this resource."
+                        };
+
+                        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+
+                        var response = new ErrorResponseScheme
+                        {
+                            Error = "forbidden",
+                            Message = "You do not have sufficient permissions to access this resource."
+                        };
+
+                        await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+                    }
+                };
             });
+    }
+
+    public static void AddCustomBehavior(this IServiceCollection services)
+    {
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var errors = context.ModelState
+                    .Where(e => e.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                var response = new ErrorResponseScheme
+                {
+                    Error = "validation_failed",
+                    Message = "One or more validation errors occurred.",
+                    Details = errors
+                };
+
+                return new BadRequestObjectResult(response)
+                {
+                    ContentTypes = { "application/json" }
+                };
+            };
+        });
     }
 }

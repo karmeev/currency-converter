@@ -2,22 +2,23 @@ using Currency.Data.Contracts;
 using Currency.Data.Models;
 using Currency.Domain.Login;
 using Currency.Infrastructure.Contracts.Databases;
+using Currency.Infrastructure.Contracts.Databases.Base;
+using Currency.Infrastructure.Contracts.Databases.Redis;
 
 namespace Currency.Data.Repositories;
 
 internal class AuthRepository(IRedisContext context) : IAuthRepository
 {
-    private const string AuthStorage = "auth";
-    private const string Prefix = "auth_";
-
+    private static string Prefix => EntityPrefix.AuthPrefix;
+    
     public async Task AddRefreshToken(RefreshToken refreshToken)
     {
-        await context.SetAsync(Prefix + refreshToken.Token, refreshToken, refreshToken.ExpiresAt, AuthStorage);
+        await context.SetAsync(Prefix + refreshToken.Token, refreshToken, refreshToken.ExpiresAt);
     }
 
     public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)
     {
-        var token = await context.GetAsync<RefreshTokenModel>(Prefix + refreshToken, AuthStorage);
+        var token = await context.GetAsync<RefreshTokenModel>(Prefix + refreshToken);
         if (token == null)
             return new RefreshToken();
 

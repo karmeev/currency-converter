@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Currency.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = nameof(UserRole.Admin))]
 [ApiVersion("2.0")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class StatusController : ControllerBase
 {

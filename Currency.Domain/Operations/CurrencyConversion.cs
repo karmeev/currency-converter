@@ -1,7 +1,9 @@
 namespace Currency.Domain.Operations;
 
-public struct CurrencyConversion
+public class CurrencyConversion
 {
-    public decimal Amount;
-    public string Currency;
+    public string Provider { get; init; }
+    public decimal Amount { get; init; }
+    public string FromCurrency { get; set; }
+    public string ToCurrency { get; init; }
 }

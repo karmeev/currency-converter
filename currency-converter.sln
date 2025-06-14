@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTests", "Integra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Currency.IntegrationTests.Api", "Tests\IntegrationTests\Currency.IntegrationTests.Api\Currency.IntegrationTests.Api.csproj", "{CC18B837-377B-443E-81F6-5C16E32771A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Currency.Common", "Currency.Common\Currency.Common.csproj", "{5CA9B6A9-8800-4096-894F-0BB2765BEEBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,10 @@ Global
 		{CC18B837-377B-443E-81F6-5C16E32771A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC18B837-377B-443E-81F6-5C16E32771A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC18B837-377B-443E-81F6-5C16E32771A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CA9B6A9-8800-4096-894F-0BB2765BEEBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CA9B6A9-8800-4096-894F-0BB2765BEEBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CA9B6A9-8800-4096-894F-0BB2765BEEBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CA9B6A9-8800-4096-894F-0BB2765BEEBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B1FD9BD5-7D1A-4E44-B8BF-F349FD362008} = {CAB45B09-3192-407E-AFAF-251C0CFE7313}

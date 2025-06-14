@@ -1,4 +1,6 @@
 using Asp.Versioning;
+using Currency.Facades.Contracts;
+using Currency.Facades.Contracts.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,24 +10,26 @@ namespace Currency.Api.Controllers;
 [Authorize]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
-public class CurrencyController : ControllerBase
+public class CurrencyController(ICurrencyFacade facade) : ControllerBase
 {
-    private const string DefaultCurrency = "EUR";
-
     [HttpGet]
-    public async Task GetExchangeRateHistoryAsync()
+    public async Task<IActionResult> GetExchangeRateHistoryAsync([FromQuery] GetHistoryRequest request)
     {
-    }
-
-    [HttpPost]
-    public async Task ConvertCurrencyAsync()
-    {
+        var response = await facade.GetExchangeRatesHistoryAsync(request, HttpContext.RequestAborted);
+        return Ok(response);
     }
 
     [HttpGet("latest")]
-    public async Task GetLatestExchangeRatesAsync([FromQuery] string currency)
+    public async Task<IActionResult> GetLatestExchangeRatesAsync([FromQuery] string currency = "EUR")
     {
-        if (string.IsNullOrEmpty(currency))
-            currency = DefaultCurrency;
+        var response = await facade.RetrieveLatestExchangeRatesAsync(currency, HttpContext.RequestAborted);
+        return Ok(response);
+    }
+    
+    [HttpPost("convert")]
+    public async Task<IActionResult> ConvertCurrencyAsync([FromQuery] ConvertToCurrencyRequest request)
+    {
+        var response = await facade.ConvertToCurrencyAsync(request, HttpContext.RequestAborted);
+        return Ok(response);
     }
 }

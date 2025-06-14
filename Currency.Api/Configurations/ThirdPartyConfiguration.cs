@@ -1,4 +1,5 @@
 using Currency.Api.Settings;
+using Currency.Common.Providers;
 using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Settings;
 using Polly;
@@ -11,10 +12,12 @@ namespace Currency.Api.Configurations;
 
 public static class ThirdPartyConfiguration
 {
-    public static void ConfigureThirdParty(this IServiceCollection services, StartupSettings startupSettings)
+    public static void AddThirdParty(this IServiceCollection services, StartupSettings startupSettings)
     {
+        services.AddHttpClient();
+        
         var frankfurterSettings = startupSettings.Integrations.Frankfurter;
-        services.AddHttpClient(IntegrationConst.Frankfurter,
+        services.AddHttpClient(ProvidersConst.Frankfurter,
                 client => { client.BaseAddress = new Uri(frankfurterSettings.BaseAddress); })
             .AddPolicyHandler(GetFrankfurterTimeoutPolicy(frankfurterSettings))
             .AddPolicyHandler(GetFrankfurterRetryPolicy(frankfurterSettings))
