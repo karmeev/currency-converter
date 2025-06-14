@@ -2,6 +2,7 @@ namespace Currency.Domain.Rates;
 
 public class ExchangeRatesHistory
 {
+    public string Provider { get; init; }
     public string CurrentCurrency { get; init; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

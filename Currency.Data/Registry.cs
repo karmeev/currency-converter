@@ -15,5 +15,6 @@ public static class Registry
             .PropertiesAutowired();
 
         builder.RegisterType<AuthRepository>().As<IAuthRepository>();
+        builder.RegisterType<ExchangeRatesHistoryRepository>().As<IExchangeRatesHistoryRepository>();
     }
 }

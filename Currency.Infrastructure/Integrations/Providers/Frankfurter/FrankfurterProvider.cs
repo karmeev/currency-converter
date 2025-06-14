@@ -1,4 +1,5 @@
 using Currency.Domain.Rates;
+using Currency.Infrastructure.Contracts.Integrations;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Requests;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter.Base;
@@ -47,6 +48,7 @@ internal class FrankfurterProvider(IFrankfurterClient client) : IDisposable, IFr
 
         return new ExchangeRatesHistory
         {
+            Provider = IntegrationConst.Frankfurter,
             CurrentCurrency = response.Base,
             StartDate = response.StartDate.ToDateTime(TimeOnly.MinValue),
             EndDate = response.EndDate.ToDateTime(TimeOnly.MinValue),

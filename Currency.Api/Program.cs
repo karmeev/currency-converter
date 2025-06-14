@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Currency.Api;
+using Currency.Api.BackgroundServices;
 using Currency.Api.Configurations;
 using Currency.Api.ModelBinders;
 
@@ -18,6 +19,7 @@ builder.Services.AddRateLimiter(settings);
 builder.Services.AddIdentity(settings);
 builder.Services.AddCustomBehavior();
 builder.Services.AddThirdParty(settings);
+builder.Services.AddHostedService<ConsumersStartupBackgroundService>();
 
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 {
