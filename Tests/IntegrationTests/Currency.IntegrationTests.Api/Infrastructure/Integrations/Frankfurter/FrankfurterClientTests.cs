@@ -34,7 +34,7 @@ public class FrankfurterClientTests
             }
         };
         
-        services.AddThirdParty(settings);
+        services.AddThirdPartyApis(settings);
         services.AddOptions();
         services.AddHttpClient();
         var provider = services.BuildServiceProvider();
