@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Currency.Api.Models;
 using Currency.Api.Schemes;
 using Currency.Api.Settings;
 using Currency.Infrastructure.Settings;
@@ -130,7 +131,7 @@ public static class ApiConfiguration
 
                         var response = new ErrorResponseScheme
                         {
-                            Error = "unauthorized",
+                            Error = ErrorMessage.Unauthorized,
                             Message = "Authentication is required to access this resource."
                         };
 
@@ -143,7 +144,7 @@ public static class ApiConfiguration
 
                         var response = new ErrorResponseScheme
                         {
-                            Error = "forbidden",
+                            Error = ErrorMessage.Forbidden,
                             Message = "You do not have sufficient permissions to access this resource."
                         };
 
@@ -168,7 +169,7 @@ public static class ApiConfiguration
 
                 var response = new ErrorResponseScheme
                 {
-                    Error = "validation_failed",
+                    Error = ErrorMessage.ValidationError,
                     Message = "One or more validation errors occurred.",
                     Details = errors
                 };

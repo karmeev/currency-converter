@@ -59,6 +59,9 @@ internal class RedisContext(
         //TODO: add from settings
         if (key.StartsWith(EntityPrefix.RatesHistoryPrefix)) 
             return connection.GetDatabase(2);
+        
+        if (key.StartsWith(EntityPrefix.ExchangeRatesPrefix)) 
+            return connection.GetDatabase(3);
 
         return connection.GetDatabase(redisSettings.EntitiesDatabaseNumber);
     }

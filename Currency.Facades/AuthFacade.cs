@@ -4,16 +4,19 @@ using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Contracts.Responses;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
+using Microsoft.Extensions.Logging;
 
 namespace Currency.Facades;
 
 internal class AuthFacade(
     IUserService userService,
-    ITokenService tokenService) : IAuthFacade
+    ITokenService tokenService,
+    ILogger<AuthFacade> logger) : IAuthFacade
 {
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        
         var validationResult = AuthValidator.Validate(request.Username, request.Password);
         if (!validationResult.IsValid) return AuthResponse.Error(validationResult.Message);
 
@@ -31,9 +34,14 @@ internal class AuthFacade(
     public async Task<AuthResponse> RefreshTokenAsync(string token, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        
         if (string.IsNullOrEmpty(token)) return AuthResponse.Error("Invalid refresh token");
         var refreshToken = await tokenService.GetRefreshTokenAsync(token);
-        if (!refreshToken.Verified) return AuthResponse.Error("Refresh token is not verified");
+        if (!refreshToken.Verified)
+        {
+            logger.LogWarning("Refresh token is not verified: {token}", token);
+            return AuthResponse.Error("Refresh token is not verified");
+        }
 
         var user = await userService.TryGetUserByIdAsync(refreshToken.UserId);
         if (user is null) return AuthResponse.Error("User not found");

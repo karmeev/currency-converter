@@ -6,6 +6,7 @@ using Currency.Facades.Tests.Fakes;
 using Currency.Facades.Tests.Utility;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ValidationResult = Currency.Facades.Validators.Results.ValidationResult;
 
@@ -15,11 +16,14 @@ namespace Currency.Facades.Tests;
 [Category("Unit tests")]
 public class AuthFacadeTests
 {
+    private ILogger<AuthFacade> _logger;
+    
     [SetUp]
     public void Setup()
     {
         _userService = new Mock<IUserService>();
         _tokenService = new Mock<ITokenService>();
+        _logger = Test.GetLogger<AuthFacade>();
     }
     
     private Mock<IUserService> _userService;
@@ -51,7 +55,7 @@ public class AuthFacadeTests
             }));
         _tokenService.Setup(x => x.AddRefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()));
 
-        var sut = new AuthFacade(_userService.Object, _tokenService.Object);
+        var sut = new AuthFacade(_userService.Object, _tokenService.Object, _logger);
 
         //Act
         var result = await sut.LoginAsync(request, CancellationToken.None);
@@ -100,7 +104,7 @@ public class AuthFacadeTests
                     new(ClaimTypes.Name, user.Username)
                 }));
 
-        var sut = new AuthFacade(_userService.Object, _tokenService.Object);
+        var sut = new AuthFacade(_userService.Object, _tokenService.Object, _logger);
 
         //Act
         var result = await sut.RefreshTokenAsync(request, CancellationToken.None);

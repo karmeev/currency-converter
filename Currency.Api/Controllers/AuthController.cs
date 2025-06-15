@@ -1,4 +1,6 @@
 using Asp.Versioning;
+using Currency.Api.Models;
+using Currency.Api.Schemes;
 using Currency.Facades.Contracts;
 using Currency.Facades.Contracts.Requests;
 using Microsoft.AspNetCore.Mvc;
@@ -14,8 +16,7 @@ public class AuthController(IAuthFacade facade) : ControllerBase
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
         var response = await facade.LoginAsync(request, HttpContext.RequestAborted);
-        if (!response.Success)
-            return BadRequest(response.ErrorMessage);
+        if (!response.Success) return BadRequest(response.ErrorMessage);
 
         return Ok(new
         {
@@ -29,14 +30,23 @@ public class AuthController(IAuthFacade facade) : ControllerBase
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         var response = await facade.RefreshTokenAsync(request.Token, HttpContext.RequestAborted);
-        if (!response.Success)
-            return BadRequest(response.ErrorMessage);
+        if (!response.Success) return BadRequest(response.ErrorMessage);
 
         return Ok(new
         {
             response.AccessToken,
             response.RefreshToken,
             response.ExpiresAt
+        });
+    }
+
+    private BadRequestObjectResult BadRequest(string message)
+    {
+        return base.BadRequest(new ErrorResponseScheme
+        {
+            Error = ErrorMessage.ValidationError,
+            Message = "Authorization failed",
+            Details = message
         });
     }
 }

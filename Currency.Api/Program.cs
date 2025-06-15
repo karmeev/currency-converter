@@ -21,7 +21,7 @@ builder.Services.AddIdentity(settings);
 builder.Services.AddCustomBehavior();
 builder.Services.AddThirdPartyApis(settings);
 builder.Services.AddHostedService<ConsumersStartupBackgroundService>();
-builder.Services.AddTransient<ExceptionHandler>();
+
 builder.Host.AddLogger(builder.Services, builder.Environment.EnvironmentName);
 
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
@@ -31,9 +31,9 @@ builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 
 var app = builder.Build();
 app.UseHttpsRedirection();
-app.UseCustomExceptionHandler();
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.UseRequestLogging();
 app.Run();

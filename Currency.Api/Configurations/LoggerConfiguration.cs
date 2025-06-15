@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -69,24 +68,5 @@ public static class CurrencyLoggerConfiguration
                     options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                 })
                 .AddConsoleExporter());  // Optional for local debugging
-    }
-
-    public static void UseRequestLogging(this IApplicationBuilder app)
-    {
-        app.UseSerilogRequestLogging(options =>
-        {
-            options.EnrichDiagnosticContext = (diagCtx, httpCtx) =>
-            {
-                diagCtx.Set("ClientIP", httpCtx.Connection.RemoteIpAddress?.ToString() ?? "undefined");
-                diagCtx.Set("RequestHost", httpCtx.Request.Host.ToString());
-                diagCtx.Set("RequestScheme", httpCtx.Request.Scheme);
-                diagCtx.Set("RequestPath", httpCtx.Request.Path);
-                diagCtx.Set("RequestId", httpCtx.TraceIdentifier);
-
-                var clientId = httpCtx.User?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                if (clientId is not null)
-                    diagCtx.Set("ClientId", clientId);
-            };
-        });
     }
 }
