@@ -11,15 +11,15 @@ internal class UserService(
     IUsersRepository usersRepository) : IUserService
 {
 #nullable enable
-    public async Task<User?> TryGetUserAsync(LoginModel model)
+    public async Task<User?> TryGetUserAsync(LoginModel model, CancellationToken token)
     {
-        var user = await usersRepository.GetUserByUsernameAsync(model);
+        var user = await usersRepository.GetUserByUsernameAsync(model, token);
         if (user == null) return null;
         return secretHasher.Verify(model.Password, user.Password) ? user : null;
     }
 
-    public async Task<User?> TryGetUserByIdAsync(string userId)
+    public async Task<User?> TryGetUserByIdAsync(string userId, CancellationToken token)
     {
-        return await usersRepository.GetUserByIdAsync(userId);
+        return await usersRepository.GetUserByIdAsync(userId, token);
     }
 }

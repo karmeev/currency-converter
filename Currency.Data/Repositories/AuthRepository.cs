@@ -11,14 +11,16 @@ internal class AuthRepository(IRedisContext context) : IAuthRepository
 {
     private static string Prefix => EntityPrefix.AuthPrefix;
     
-    public async Task AddRefreshToken(RefreshToken refreshToken)
+    public async Task AddRefreshToken(RefreshToken refreshToken, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested) return;
+        
         await context.SetAsync($"{Prefix}:{refreshToken.Token}", refreshToken, refreshToken.ExpiresAt);
     }
 
-    public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)
+    public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken, CancellationToken ct)
     {
-        var token = await context.GetAsync<RefreshTokenModel>(Prefix + refreshToken);
+        var token = await context.TryGetAsync<RefreshTokenModel>($"{Prefix}:{refreshToken}");
         if (token == null)
             return new RefreshToken();
 

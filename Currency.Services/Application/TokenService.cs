@@ -13,9 +13,9 @@ internal class TokenService(
     IJwtTokenGenerator tokenGenerator,
     IAuthRepository authRepository) : ITokenService
 {
-    public (Tokens, IEnumerable<Claim>) GenerateTokens(User user)
+    public (Tokens, IEnumerable<Claim>) GenerateTokens(User user, CancellationToken ct)
     {
-        var (accessToken, claims) = GenerateAccessToken(user);
+        var (accessToken, claims) = GenerateAccessToken(user, ct);
         var refreshToken = tokenGenerator.CreateRefreshToken(user.Username);
 
         var tokens = new Tokens
@@ -27,7 +27,7 @@ internal class TokenService(
         return (tokens, claims);
     }
 
-    public (AccessToken, IEnumerable<Claim>) GenerateAccessToken(User user)
+    public (AccessToken, IEnumerable<Claim>) GenerateAccessToken(User user, CancellationToken ct)
     {
         var claims = tokenGenerator.BuildClaims(user.Id,
             user.Username, user.Role);
@@ -36,12 +36,12 @@ internal class TokenService(
         return (accessToken, claims);
     }
 
-    public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)
+    public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken, CancellationToken ct)
     {
-        return await authRepository.GetRefreshTokenAsync(refreshToken);
+        return await authRepository.GetRefreshTokenAsync(refreshToken, ct);
     }
 
-    public async Task AddRefreshTokenAsync(string refreshToken, string userId)
+    public async Task AddRefreshTokenAsync(string refreshToken, string userId, CancellationToken ct)
     {
         var token = new RefreshToken
         {
@@ -51,6 +51,6 @@ internal class TokenService(
             ExpirationDate = DateTime.UtcNow.AddDays(settings.RefreshTokenTtlInDays),
             ExpiresAt = TimeSpan.FromDays(settings.RefreshTokenTtlInDays)
         };
-        await authRepository.AddRefreshToken(token);
+        await authRepository.AddRefreshToken(token, ct);
     }
 }

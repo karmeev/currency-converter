@@ -34,13 +34,13 @@ public class UserServiceTests
         _secretHasherMock.Setup(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(true);
 
-        _userRepositoryMock.Setup(x => x.GetUserByUsernameAsync(It.IsAny<LoginModel>()))
+        _userRepositoryMock.Setup(x => x.GetUserByUsernameAsync(It.IsAny<LoginModel>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         var sut = new UserService(_secretHasherMock.Object, _userRepositoryMock.Object);
 
         //Act
-        var result = await sut.TryGetUserAsync(model);
+        var result = await sut.TryGetUserAsync(model, CancellationToken.None);
 
         //Assert
         if (result is not null)
@@ -65,13 +65,13 @@ public class UserServiceTests
         var user = FakeModels.GenerateFakeUser();
         user.Id = id;
 
-        _userRepositoryMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>()))
+        _userRepositoryMock.Setup(x => x.GetUserByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         var sut = new UserService(_secretHasherMock.Object, _userRepositoryMock.Object);
 
         //Act
-        var result = await sut.TryGetUserByIdAsync(id);
+        var result = await sut.TryGetUserByIdAsync(id, CancellationToken.None);
 
         //Assert
         if (result is not null)

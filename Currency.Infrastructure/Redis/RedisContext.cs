@@ -9,10 +9,8 @@ namespace Currency.Infrastructure.Redis;
 
 internal class RedisContext(
     InfrastructureSettings settings,
-    IConnectionMultiplexer connection) : IRedisContext
+    IConnectionMultiplexer connection) : IRedisContext, IRedisLockContext
 {
-    private const string IndexesSecretKey = "indexes";
-    
     public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null)
     {
         var serialized = JsonSerializer.Serialize(value);
@@ -20,7 +18,7 @@ internal class RedisContext(
         await db.StringSetAsync(key, serialized, ttl);
     }
 
-    public async Task<T?> GetAsync<T>(string key)
+    public async Task<T> TryGetAsync<T>(string key)
     {
         var db = GetDatabase(key);
         var value = await db.StringGetAsync(key);
@@ -29,12 +27,18 @@ internal class RedisContext(
     
     public async Task<T> GetByIndexAsync<T>(string index)
     {
-        var db = GetDatabase(IndexesSecretKey);
+        var db = GetIndexesDatabase();
         var value = await db.StringGetAsync(index);
         var key = value.ToString();
         db = GetDatabase(index);
         var entity = await db.StringGetAsync(key);
         return JsonSerializer.Deserialize<T>(entity!);
+    }
+    
+    public Task<bool> KeyExistsAsync(string key)
+    {
+        var db = GetDatabase(key);
+        return db.KeyExistsAsync(key);
     }
     
     public async Task SortedSetAddAsync(string key, IEnumerable<RedisSortedSetEntry> entries, TimeSpan? ttl = null)
@@ -50,7 +54,7 @@ internal class RedisContext(
         if (ttl.HasValue)
             await db.KeyExpireAsync(key, ttl);
     }
-
+    
     public async Task<string[]> SortedSetRangeByRankAsync(string key, long start, long stop, bool ascending = true)
     {
         var db = GetDatabase(key);
@@ -60,27 +64,55 @@ internal class RedisContext(
 
         return redisValues.Select(rv => rv.ToString()).ToArray();
     }
+    
+    public async Task<bool> AcquireLockAsync(string key, string lockId)
+    {
+        //TODO: TTL should be implements from settings!
+        var ttl = new TimeSpan(0,0,3,0,0);
+        var db = GetLocksDatabase();
+        return await db.StringSetAsync($"lock:{key}", lockId, ttl, when: When.NotExists);
+    }
+
+    public async Task<bool> ReleaseLockAsync(string key, string lockId)
+    {
+        var db = GetLocksDatabase();
+        
+        var script = """
+                             if redis.call('get', KEYS[1]) == ARGV[1] then
+                                 return redis.call('del', KEYS[1])
+                             else
+                                 return 0
+                             end
+                     """;
+
+        var result = (int)await db.ScriptEvaluateAsync(
+            script,
+            keys: [$"lock:{key}"],
+            values: [lockId]);
+
+        return result == 1;
+    }
+
+    private IDatabase GetIndexesDatabase() => connection.GetDatabase(0);
+    private IDatabase GetLocksDatabase() => connection.GetDatabase(1);
 
     private IDatabase GetDatabase(string key)
     {
         var redisSettings = settings.RedisSettings;
-        
-        if (key == IndexesSecretKey)
-            return connection.GetDatabase(0);
         
         //TODO: add from settings
         if (key.StartsWith(EntityPrefix.AuthPrefix)) 
             return connection.GetDatabase(redisSettings.RefreshTokensDatabaseNumber);
         
         if (key.StartsWith(EntityPrefix.RatesHistoryPrefix)) 
-            return connection.GetDatabase(2);
+            return connection.GetDatabase(3);
         
         if (key.StartsWith(EntityPrefix.ExchangeRatesPrefix)) 
-            return connection.GetDatabase(3);
+            return connection.GetDatabase(4);
         
         if (key.StartsWith(EntityPrefix.UserPrefix)) 
             return connection.GetDatabase(15);
 
-        return connection.GetDatabase(redisSettings.EntitiesDatabaseNumber);
+        return connection.GetDatabase(14);
     }
 }

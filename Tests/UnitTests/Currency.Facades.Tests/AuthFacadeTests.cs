@@ -45,15 +45,15 @@ public class AuthFacadeTests
             Role = UserRole.User
         };
 
-        _userService.Setup(x => x.TryGetUserAsync(It.IsAny<LoginModel>())).ReturnsAsync(user);
+        _userService.Setup(x => x.TryGetUserAsync(It.IsAny<LoginModel>(), It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
-        _tokenService.Setup(x => x.GenerateTokens(It.IsAny<User>()))
+        _tokenService.Setup(x => x.GenerateTokens(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .Returns((FakeResults.GenerateFakeTokens(), new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Name, user.Username)
             }));
-        _tokenService.Setup(x => x.AddRefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>()));
+        _tokenService.Setup(x => x.AddRefreshTokenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
 
         var sut = new AuthFacade(_userService.Object, _tokenService.Object, _logger);
 
@@ -91,11 +91,11 @@ public class AuthFacadeTests
             Role = UserRole.User
         };
 
-        _userService.Setup(x => x.TryGetUserByIdAsync(It.IsAny<string>())).ReturnsAsync(user);
+        _userService.Setup(x => x.TryGetUserByIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
-        _tokenService.Setup(x => x.GetRefreshTokenAsync(It.IsAny<string>()))
+        _tokenService.Setup(x => x.GetRefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RefreshToken { Verified = true, UserId = user.Id });
-        _tokenService.Setup(x => x.GenerateAccessToken(It.IsAny<User>()))
+        _tokenService.Setup(x => x.GenerateAccessToken(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .Returns((
                 new AccessToken { ExpiresAt = DateTime.MaxValue, Token = new Faker().Random.Hash() },
                 new List<Claim>

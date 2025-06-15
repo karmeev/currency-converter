@@ -1,13 +1,18 @@
 using Currency.Data.Contracts;
 using Currency.Data.Contracts.Entries;
+using Currency.Data.Contracts.Exceptions;
+using Currency.Data.Locks;
 using Currency.Infrastructure.Contracts.Databases.Base;
 using Currency.Infrastructure.Contracts.Databases.Redis;
 using Currency.Infrastructure.Contracts.Databases.Redis.Entries;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Currency.Data.Repositories;
 
-public class ExchangeRatesHistoryRepository(IRedisContext context): IExchangeRatesHistoryRepository
+public class ExchangeRatesHistoryRepository(
+    ILogger<ExchangeRatesHistoryRepository> logger,
+    IRedisContext context): IExchangeRatesHistoryRepository
 {
     private static string Prefix => EntityPrefix.RatesHistoryPrefix;
 
@@ -31,20 +36,35 @@ public class ExchangeRatesHistoryRepository(IRedisContext context): IExchangeRat
         return result;
     }
     
-    public async Task AddRateHistory(string id, IEnumerable<ExchangeRateEntry> entries, CancellationToken token)
+    public async Task AddRateHistory(string id, IEnumerable<ExchangeRateEntry> rates, CancellationToken token)
     {
         if (token.IsCancellationRequested)
             return;
-
-        var redisEntries = entries.Select(entry =>
+        
+        var key = $"{Prefix}:{id}";
+        
+        try
         {
-            var value = JsonConvert.SerializeObject(entry);
-            var score = new DateTimeOffset(entry.Date).ToUnixTimeMilliseconds();
-            return new RedisSortedSetEntry(value, score);
-        });
+            await using var @lock = new DataLock((IRedisLockContext)context);
+            await @lock.AcquireLockAsync(key);
+            
+            if (await context.KeyExistsAsync(key))
+                ConcurrencyException.ThrowIfExists("Exchange Rates History already exists", key);
 
-        //TODO: TTL should be implements from settings!
-        var ttl = new TimeSpan(0,0,1,0,0);
-        await context.SortedSetAddAsync($"{Prefix}:{id}", redisEntries, ttl);
+            var entries = rates.Select(entry =>
+            {
+                var value = JsonConvert.SerializeObject(entry);
+                var score = new DateTimeOffset(entry.Date).ToUnixTimeMilliseconds();
+                return new RedisSortedSetEntry(value, score);
+            });
+
+            //TODO: TTL should be implements from settings!
+            var ttl = new TimeSpan(0, 0, 1, 0, 0);
+            await context.SortedSetAddAsync(key, entries, ttl);
+        }
+        catch (ConcurrencyException ex)
+        {
+            logger.LogError(ex, "Pessimistic Concurrency: {message}, Key: {key}", ex.Message, ex.LockId);
+        }
     }
 }

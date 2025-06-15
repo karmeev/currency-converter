@@ -50,7 +50,7 @@ public class TokenServiceTests
             _mockAuthRepository.Object);
 
         //Act
-        var (result, resultClaims) = sut.GenerateTokens(FakeModels.GenerateFakeUser());
+        var (result, resultClaims) = sut.GenerateTokens(FakeModels.GenerateFakeUser(), It.IsAny<CancellationToken>());
 
         //Assert
         Assert.Multiple(() =>
@@ -85,7 +85,7 @@ public class TokenServiceTests
             _mockAuthRepository.Object);
 
         //Act
-        var (result, resultClaims) = sut.GenerateAccessToken(FakeModels.GenerateFakeUser());
+        var (result, resultClaims) = sut.GenerateAccessToken(FakeModels.GenerateFakeUser(), It.IsAny<CancellationToken>());
 
         //Assert
         Assert.Multiple(() =>
@@ -105,7 +105,7 @@ public class TokenServiceTests
         //Arrange
         var refreshToken = new Faker().Random.Hash();
 
-        _mockAuthRepository.Setup(x => x.GetRefreshTokenAsync(It.IsAny<string>()))
+        _mockAuthRepository.Setup(x => x.GetRefreshTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RefreshToken { Verified = true });
 
         var sut = new TokenService(
@@ -114,7 +114,7 @@ public class TokenServiceTests
             _mockAuthRepository.Object);
 
         //Act
-        var result = await sut.GetRefreshTokenAsync(refreshToken);
+        var result = await sut.GetRefreshTokenAsync(refreshToken, CancellationToken.None);
 
         //Assert
         Assert.That(result.Verified, Is.True);
@@ -128,7 +128,7 @@ public class TokenServiceTests
         Test.StartTest();
         
         //Arrange
-        _mockAuthRepository.Setup(x => x.AddRefreshToken(It.IsAny<RefreshToken>()))
+        _mockAuthRepository.Setup(x => x.AddRefreshToken(It.IsAny<RefreshToken>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var sut = new TokenService(
@@ -139,7 +139,7 @@ public class TokenServiceTests
         var refreshToken = new Faker().Random.Hash();
 
         //Act & Assert
-        Assert.DoesNotThrowAsync(async () => await sut.AddRefreshTokenAsync(refreshToken, "1"));
+        Assert.DoesNotThrowAsync(async () => await sut.AddRefreshTokenAsync(refreshToken, "1", CancellationToken.None));
         
         Test.CompleteTest();
     }

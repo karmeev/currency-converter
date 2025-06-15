@@ -15,5 +15,5 @@ public interface IExchangeRatesHistoryRepository
     Task<IEnumerable<ExchangeRateEntry>> GetRateHistoryPagedAsync(string id, int pageNumber, int pageSize, 
         CancellationToken token);
     
-    Task AddRateHistory(string id, IEnumerable<ExchangeRateEntry> entry, CancellationToken token);
+    Task AddRateHistory(string id, IEnumerable<ExchangeRateEntry> rates, CancellationToken token);
 }
