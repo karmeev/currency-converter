@@ -11,6 +11,8 @@ internal class RedisContext(
     InfrastructureSettings settings,
     IConnectionMultiplexer connection) : IRedisContext, IRedisLockContext
 {
+    private RedisSettings Settings => settings.RedisSettings;
+    
     public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null)
     {
         var serialized = JsonSerializer.Serialize(value);
@@ -67,8 +69,7 @@ internal class RedisContext(
     
     public async Task<bool> AcquireLockAsync(string key, string lockId)
     {
-        //TODO: TTL should be implements from settings!
-        var ttl = new TimeSpan(0,0,3,0,0);
+        var ttl = new TimeSpan(0,0,0,0, Settings.DataLockMilliseconds);
         var db = GetLocksDatabase();
         return await db.StringSetAsync($"lock:{key}", lockId, ttl, when: When.NotExists);
     }
@@ -98,17 +99,14 @@ internal class RedisContext(
 
     private IDatabase GetDatabase(string key)
     {
-        var redisSettings = settings.RedisSettings;
-        
-        //TODO: add from settings
         if (key.StartsWith(EntityPrefix.AuthPrefix)) 
-            return connection.GetDatabase(redisSettings.RefreshTokensDatabaseNumber);
+            return connection.GetDatabase(Settings.RefreshTokensDatabaseNumber);
         
         if (key.StartsWith(EntityPrefix.RatesHistoryPrefix)) 
-            return connection.GetDatabase(3);
+            return connection.GetDatabase(Settings.ExchangeRatesHistoryDatabaseNumber);
         
         if (key.StartsWith(EntityPrefix.ExchangeRatesPrefix)) 
-            return connection.GetDatabase(4);
+            return connection.GetDatabase(Settings.ExchangeRatesDatabaseNumber);
         
         if (key.StartsWith(EntityPrefix.UserPrefix)) 
             return connection.GetDatabase(15);

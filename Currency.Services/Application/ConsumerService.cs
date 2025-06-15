@@ -5,6 +5,7 @@ using Currency.Domain.Operations;
 using Currency.Domain.Rates;
 using Currency.Services.Application.Consumers.Base;
 using Currency.Services.Contracts.Application;
+using Microsoft.Extensions.Logging;
 
 namespace Currency.Services.Application;
 
@@ -125,7 +126,8 @@ internal class ConsumerService(
         }
         catch (Exception ex)
         {
-            //TODO: add logs
+            var logger = lifetimeScope.Resolve<ILogger<ConsumerService>>();
+            logger.LogError(ex, "Unhandled consumer error: {message}", ex.Message);
         }
         finally
         {

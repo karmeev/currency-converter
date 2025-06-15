@@ -4,7 +4,7 @@ public class ProviderException(string message) : Exception(message)
 {
     public Exception OriginalException { get; set; }
 
-    public static T ThrowIfProviderNotFoundByRequest<T>(string message, Type requestType)
+    public static T ThrowIfNotFound<T>(string message, Type requestType)
     {
         throw new ProviderException($"{message}; Request: {requestType.FullName}");
     }

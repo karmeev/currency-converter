@@ -1,15 +1,20 @@
 using Autofac;
+using Autofac.Core;
+using Autofac.Core.Registration;
 using Currency.Infrastructure.Contracts.Integrations.Providers;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Exceptions;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Requests;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter.Base;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
+using Microsoft.Extensions.Logging;
 using FrankfurterRequests = Currency.Infrastructure.Contracts.Integrations.Providers.Frankfurter;
 
 namespace Currency.Infrastructure.Integrations.Providers;
 
-internal class CurrencyProvidersFactory(ILifetimeScope scope) : ICurrencyProvidersFactory
+internal class CurrencyProvidersFactory(
+    ILogger<CurrencyProvidersFactory> logger,
+    ILifetimeScope scope) : ICurrencyProvidersFactory
 {
     private const string FactoryKey = "currency_provider_factory";
 
@@ -27,20 +32,19 @@ internal class CurrencyProvidersFactory(ILifetimeScope scope) : ICurrencyProvide
         try
         {
             var providerType = RequestsMaps[typeof(T)];
-            var provider = scope.ResolveKeyed(FactoryKey, providerType) as ICurrencyProvider;
-            if (provider is null)
-                //TODO: add log here
-                return ProviderException.ThrowIfProviderNotFoundByRequest<ICurrencyProvider>(
-                    "Provider not found",
-                    typeof(T));
+            if (scope.ResolveKeyed(FactoryKey, providerType) is not ICurrencyProvider provider)
+            {
+                logger.LogError("Provider not found: {message}", typeof(T));
+                return ProviderException.ThrowIfNotFound<ICurrencyProvider>("Provider not found", typeof(T));
+            }
+            
             return provider;
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is ComponentNotRegisteredException or DependencyResolutionException)
         {
-            //TODO: add log here
-            return ProviderException.ThrowIfResolutionFailure<ICurrencyProvider>(
-                "Provider resolution failure",
-                ex);
+            logger.LogError(exception, "Provider resolution failure: {message}", exception.Message);
+            return ProviderException.ThrowIfResolutionFailure<ICurrencyProvider>("Provider resolution failure", 
+                exception);
         }
     }
 

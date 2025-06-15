@@ -1,6 +1,7 @@
 using Currency.Data.Contracts;
 using Currency.Data.Contracts.Exceptions;
 using Currency.Data.Locks;
+using Currency.Data.Settings;
 using Currency.Domain.Operations;
 using Currency.Domain.Rates;
 using Currency.Infrastructure.Contracts.Databases.Base;
@@ -11,6 +12,7 @@ namespace Currency.Data.Repositories;
 
 internal class ExchangeRatesRepository(
     ILogger<ExchangeRatesRepository> logger,
+    DataSettings settings,
     IRedisContext context) : IExchangeRatesRepository
 {
     private static string Prefix => EntityPrefix.ExchangeRatesPrefix;
@@ -29,9 +31,7 @@ internal class ExchangeRatesRepository(
             if (await context.TryGetAsync<ExchangeRates>(key) is not null)
                 ConcurrencyException.ThrowIfExists("Exchange Rates already exists", key);
 
-            //TODO: TTL should be implements from settings!
-            var ttl = new TimeSpan(0, 0, 3, 0, 0);
-            await context.SetAsync(key, exchangeRates, ttl);
+            await context.SetAsync(key, exchangeRates, settings.ExchangeRatesTtl);
         }
         catch (ConcurrencyException ex)
         {
@@ -41,7 +41,7 @@ internal class ExchangeRatesRepository(
 
     public async Task<ExchangeRates> GetExchangeRates(string id, CancellationToken token)
     {
-        //if (token.IsCancellationRequested) return;
+        token.ThrowIfCancellationRequested();
         
         var rates = await context.TryGetAsync<ExchangeRates>($"{Prefix}:{id}");
         return rates;
@@ -60,10 +60,8 @@ internal class ExchangeRatesRepository(
             
             if (await context.TryGetAsync<ExchangeRates>(key) is not null)
                 ConcurrencyException.ThrowIfExists("Currency conversion already exists", key);
-
-            //TODO: TTL should be implements from settings!
-            var ttl = new TimeSpan(0, 0, 3, 0, 0);
-            await context.SetAsync(key, conversion, ttl);
+            
+            await context.SetAsync(key, conversion, settings.ConversionResultTtl);
         }
         catch (ConcurrencyException ex)
         {
@@ -73,7 +71,7 @@ internal class ExchangeRatesRepository(
 
     public async Task<CurrencyConversion> GetCurrencyConversionAsync(string id, CancellationToken token)
     {
-        //if (token.IsCancellationRequested) return;
+        token.ThrowIfCancellationRequested();
         
         var currency = await context.TryGetAsync<CurrencyConversion>($"{Prefix}:{id}");
         return currency;

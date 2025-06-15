@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Currency.Api.Models;
 using Currency.Api.Schemes;
 using Currency.Api.Settings;
+using Currency.Data.Settings;
 using Currency.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Serilog.Events;
 
 namespace Currency.Api.Configurations;
 
@@ -30,6 +32,40 @@ public static class ApiConfiguration
         services.Configure<JwtSettings>(configuration.GetSection("Infrastructure:Jwt"));
         services.Configure<RedisSettings>(configuration.GetSection("Infrastructure:Redis"));
         services.Configure<FrankfurterSettings>(configuration.GetSection("Infrastructure:Integrations:Frankfurter"));
+        services.Configure<CacheSettings>(configuration.GetSection("Data:Cache"));
+
+        var loggerSettings = new LoggerSettings();
+        var loggerSection = "Infrastructure:Logger";
+        loggerSettings.ConsoleTemplate = configuration.GetSection($"{loggerSection}:Console:ConsoleTemplate").Value;
+        loggerSettings.ElasticIndexFormat = configuration.GetSection($"{loggerSection}:ELK:IndexFormat").Value;
+        loggerSettings.ElasticEndpoint = configuration.GetSection($"{loggerSection}:ELK:LogEndpoint").Value;
+        loggerSettings.JaegerEndpoint = configuration.GetSection($"{loggerSection}:Telemetry:JaegerEndpoint").Value;
+
+        if (Enum.TryParse<LogEventLevel>(configuration.GetSection($"{loggerSection}:Console:LogLevel").Value, 
+                out var consoleLogLevel))
+        {
+            loggerSettings.ConsoleLogLevel = consoleLogLevel;
+        }
+        else
+        {
+            loggerSettings.ConsoleLogLevel = LogEventLevel.Information;
+        }
+        
+        if (Enum.TryParse<LogEventLevel>(configuration.GetSection($"{loggerSection}:ELK:LogLevel").Value, 
+                out var elkLogLevel))
+        {
+            loggerSettings.ElasticLogLevel = elkLogLevel;
+        }
+        else
+        {
+            loggerSettings.ElasticLogLevel = LogEventLevel.Information;
+        }
+        
+        loggerSettings.AppVersion = configuration.GetSection("AppVersion").Value;
+        loggerSettings.Application = configuration.GetSection("Application").Value;
+        loggerSettings.Environment = env;
+        loggerSettings.EnableDebugOptions = configuration.GetSection($"{loggerSection}:EnableDebugOptions").
+            Value?.ToLower() == "true";
 
         settings = new StartupSettings
         {
@@ -40,7 +76,8 @@ public static class ApiConfiguration
             {
                 Frankfurter = configuration.GetSection("Infrastructure:Integrations:Frankfurter")
                     .Get<FrankfurterSettings>()
-            }
+            },
+            LoggerSettings = loggerSettings
         };
     }
 

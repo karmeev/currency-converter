@@ -1,72 +1,75 @@
+using Currency.Api.Settings;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
 
 namespace Currency.Api.Configurations;
 
 public static class CurrencyLoggerConfiguration
 {
-    public static void AddLogger(this IHostBuilder host, IServiceCollection services, string env)
+    public static void AddLogger(this IHostBuilder host, IServiceCollection services, StartupSettings settings)
     {
-        //TODO: pass from config
-        #if DEBUG
-        Serilog.Debugging.SelfLog.Enable(msg =>
+        var loggerSettings = settings.LoggerSettings;
+        
+        if (loggerSettings.EnableDebugOptions)
         {
-            File.AppendAllText("serilog-selflog.txt", msg + Environment.NewLine);
-        });
-        #endif
+            Serilog.Debugging.SelfLog.Enable(msg =>
+            {
+                File.AppendAllText("serilog-selflog.txt", msg + Environment.NewLine);
+            });
+        }
 
         var config = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithMachineName()
-            .Enrich.WithProperty("Application", "CurrencyConverter")
-            .WriteTo.Console(outputTemplate: 
-                "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {NewLine}{Exception}")
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+            .Enrich.WithProperty("Application", loggerSettings.Application)
+            .WriteTo.Console(
+                outputTemplate: loggerSettings.ConsoleTemplate, 
+                restrictedToMinimumLevel: loggerSettings.ConsoleLogLevel)
+            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(loggerSettings.ElasticEndpoint))
             {
                 AutoRegisterTemplate = true,
-                IndexFormat = "currency-converter-logs-{0:yyyy.MM.dd}",
-                MinimumLogEventLevel = LogEventLevel.Information,
+                IndexFormat = loggerSettings.ElasticIndexFormat,
+                MinimumLogEventLevel = loggerSettings.ElasticLogLevel,
                 FailureCallback = (l, _) => Console.WriteLine("Unable to submit event " + l.MessageTemplate),
                 EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog |
                                    EmitEventFailureHandling.RaiseCallback,
             });
         
-        #if DEBUG
-        config.MinimumLevel.Debug();
-        #else 
-        config.MinimumLevel.Information();
-        #endif
-        
         Log.Logger = config.CreateLogger();
         
         host.UseSerilog();
         services.AddLogging();
-        
+
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(
-                    serviceName: "CurrencyConverter",
-                    serviceVersion: "1.0.0")
+                    serviceName: loggerSettings.Application,
+                    serviceVersion: loggerSettings.AppVersion)
                 .AddAttributes(new Dictionary<string, object>
                 {
-                    ["deployment.environment"] = env
+                    ["deployment.environment"] = loggerSettings.Environment,
                 }))
-            .WithTracing(tracing => tracing
-                .AddSource("CurrencyConverter")
-                .AddAspNetCoreInstrumentation(options =>
+            .WithTracing(builder =>
+            {
+                builder.AddSource(loggerSettings.Application)
+                    .AddAspNetCoreInstrumentation(options =>
+                    {
+                        options.RecordException = true;
+                    })
+                    .AddHttpClientInstrumentation()
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(loggerSettings.JaegerEndpoint);
+                        options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                    });
+
+                if (loggerSettings.EnableDebugOptions)
                 {
-                    options.RecordException = true;
-                })
-                .AddHttpClientInstrumentation()
-                .AddOtlpExporter(options => 
-                {
-                    options.Endpoint = new Uri("http://jaeger:4317"); // Default Jaeger OTLP endpoint
-                    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                })
-                .AddConsoleExporter());  // Optional for local debugging
+                    builder.AddConsoleExporter();
+                }
+            });
     }
 }

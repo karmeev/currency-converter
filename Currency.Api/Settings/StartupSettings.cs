@@ -8,4 +8,5 @@ public class StartupSettings
     public RateLimiterSettings RateLimiter { get; init; }
     public JwtSettings Jwt { get; init; }
     public IntegrationsSettings Integrations { get; init; }
+    public LoggerSettings LoggerSettings { get; init; }
 }

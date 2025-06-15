@@ -2,6 +2,7 @@ using Currency.Data.Contracts;
 using Currency.Data.Contracts.Entries;
 using Currency.Data.Contracts.Exceptions;
 using Currency.Data.Locks;
+using Currency.Data.Settings;
 using Currency.Infrastructure.Contracts.Databases.Base;
 using Currency.Infrastructure.Contracts.Databases.Redis;
 using Currency.Infrastructure.Contracts.Databases.Redis.Entries;
@@ -12,6 +13,7 @@ namespace Currency.Data.Repositories;
 
 public class ExchangeRatesHistoryRepository(
     ILogger<ExchangeRatesHistoryRepository> logger,
+    DataSettings settings,
     IRedisContext context): IExchangeRatesHistoryRepository
 {
     private static string Prefix => EntityPrefix.RatesHistoryPrefix;
@@ -58,9 +60,7 @@ public class ExchangeRatesHistoryRepository(
                 return new RedisSortedSetEntry(value, score);
             });
 
-            //TODO: TTL should be implements from settings!
-            var ttl = new TimeSpan(0, 0, 1, 0, 0);
-            await context.SortedSetAddAsync(key, entries, ttl);
+            await context.SortedSetAddAsync(key, entries, settings.ExchangeRatesHistoryTtl);
         }
         catch (ConcurrencyException ex)
         {
