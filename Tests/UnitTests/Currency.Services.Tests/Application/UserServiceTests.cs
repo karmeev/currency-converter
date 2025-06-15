@@ -4,6 +4,7 @@ using Currency.Domain.Login;
 using Currency.Infrastructure.Contracts.Auth;
 using Currency.Services.Application;
 using Currency.Services.Tests.Fakes;
+using Currency.Services.Tests.Utility;
 using Moq;
 
 namespace Currency.Services.Tests.Application;
@@ -24,6 +25,8 @@ public class UserServiceTests
     [Test]
     public async Task TryGetUserAsync_HappyPath_ShouldReturnUser()
     {
+        Test.StartTest();
+        
         //Arrange
         var user = FakeModels.GenerateFakeUser();
         var model = new LoginModel(user.Username, string.Empty);
@@ -40,13 +43,23 @@ public class UserServiceTests
         var result = await sut.TryGetUserAsync(model);
 
         //Assert
-        if (result is not null) Assert.Pass();
-        else Assert.Fail();
+        if (result is not null)
+        {
+            Test.CompleteTest();
+            Assert.Pass();
+        }
+        else
+        {
+            Test.CompleteWithFailTest();
+            Assert.Fail();
+        }
     }
 
     [Test]
     public async Task TryGetUserByIdAsync_HappyPath_ShouldReturnUser()
     {
+        Test.StartTest();
+        
         //Arrange
         var id = new Faker().Random.Hash();
         var user = FakeModels.GenerateFakeUser();
@@ -61,7 +74,15 @@ public class UserServiceTests
         var result = await sut.TryGetUserByIdAsync(id);
 
         //Assert
-        if (result is not null) Assert.Pass();
-        else Assert.Fail();
+        if (result is not null)
+        {
+            Test.CompleteTest();
+            Assert.Pass();
+        }
+        else
+        {
+            Test.CompleteWithFailTest();
+            Assert.Fail();
+        }
     }
 }

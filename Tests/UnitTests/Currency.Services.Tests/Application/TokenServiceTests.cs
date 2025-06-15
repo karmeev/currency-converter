@@ -7,6 +7,7 @@ using Currency.Infrastructure.Contracts.JwtBearer;
 using Currency.Services.Application;
 using Currency.Services.Application.Settings;
 using Currency.Services.Tests.Fakes;
+using Currency.Services.Tests.Utility;
 using Moq;
 
 namespace Currency.Services.Tests.Application;
@@ -27,6 +28,8 @@ public class TokenServiceTests
     [Test]
     public void GenerateTokens_HappyPath_ShouldReturnTokenModel()
     {
+        Test.StartTest();
+        
         //Arrange
         _mockJwtTokenGenerator.Setup(x => x.BuildClaims(It.IsAny<string>(),
                 It.IsAny<string>(), It.IsAny<UserRole>()))
@@ -56,11 +59,15 @@ public class TokenServiceTests
             Assert.That(result.RefreshToken, Is.Not.Null.Or.Empty);
             Assert.That(resultClaims, Is.Not.Null);
         });
+        
+        Test.CompleteTest();
     }
 
     [Test]
     public void GenerateAccessToken_HappyPath_ShouldReturnAccessTokenAndClaims()
     {
+        Test.StartTest();
+        
         //Arrange
         _mockJwtTokenGenerator.Setup(x => x.BuildClaims(It.IsAny<string>(),
                 It.IsAny<string>(), It.IsAny<UserRole>()))
@@ -86,11 +93,15 @@ public class TokenServiceTests
             Assert.That(result.Token, Is.Not.Null.Or.Empty);
             Assert.That(resultClaims, Is.Not.Null);
         });
+        
+        Test.CompleteTest();
     }
 
     [Test]
     public async Task GetRefreshTokenAsync_HappyPath_ShouldReturnRefreshToken()
     {
+        Test.StartTest();
+        
         //Arrange
         var refreshToken = new Faker().Random.Hash();
 
@@ -107,11 +118,15 @@ public class TokenServiceTests
 
         //Assert
         Assert.That(result.Verified, Is.True);
+        
+        Test.CompleteTest();
     }
 
     [Test]
     public async Task AddRefreshTokenAsync_HappyPath_ShouldProcessSuccessfully()
     {
+        Test.StartTest();
+        
         //Arrange
         _mockAuthRepository.Setup(x => x.AddRefreshToken(It.IsAny<RefreshToken>()))
             .Returns(Task.CompletedTask);
@@ -125,5 +140,7 @@ public class TokenServiceTests
 
         //Act & Assert
         Assert.DoesNotThrowAsync(async () => await sut.AddRefreshTokenAsync(refreshToken, "1"));
+        
+        Test.CompleteTest();
     }
 }
