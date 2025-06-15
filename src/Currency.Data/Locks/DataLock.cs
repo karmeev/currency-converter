@@ -14,7 +14,7 @@ internal class DataLock(IRedisLockContext context) : IAsyncDisposable
         _lockId = Guid.NewGuid().ToString();
         
         bool lockAcquired = false;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < context.RetryCount; i++)
         {
             var isAcquired = await context.AcquireLockAsync(key, _lockId);
             if (isAcquired)
@@ -23,8 +23,7 @@ internal class DataLock(IRedisLockContext context) : IAsyncDisposable
                 break;
             }
             
-            //TODO: get it from settings
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            await Task.Delay(TimeSpan.FromMilliseconds(context.RetryDelayMilliseconds));
         }
 
         if (!lockAcquired)

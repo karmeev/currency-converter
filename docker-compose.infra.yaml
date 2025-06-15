@@ -27,7 +27,7 @@ services:
         done;
         redis-cli -h redis < /data/init-redis.redis
     volumes:
-      - ./Resources/scripts/init-redis.redis:/data/init-redis.redis
+      - ./resources/scripts/init-redis.redis:/data/init-redis.redis
   
   elasticsearch:
     image: elasticsearch:9.0.2

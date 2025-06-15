@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Currency.Facades\Currency.Facades.csproj"/>
+        <Folder Include="Domain\"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -22,7 +22,6 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
       <PackageReference Include="Moq" Version="4.20.72" />
       <PackageReference Include="NUnit" Version="4.3.2" />
@@ -35,6 +34,10 @@
       <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
       <PackageReference Include="Serilog.Sinks.TextWriter" Version="3.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\src\Currency.Services\Currency.Services.csproj" />
     </ItemGroup>
 
 </Project>

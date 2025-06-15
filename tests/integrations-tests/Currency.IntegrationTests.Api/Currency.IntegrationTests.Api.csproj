@@ -28,7 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Currency.Api\Currency.Api.csproj"/>
+      <ProjectReference Include="..\..\..\src\Currency.Api\Currency.Api.csproj" />
     </ItemGroup>
 
 </Project>

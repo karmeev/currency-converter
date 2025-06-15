@@ -11,6 +11,8 @@ internal class RedisContext(
     InfrastructureSettings settings,
     IConnectionMultiplexer connection) : IRedisContext, IRedisLockContext
 {
+    public int RetryCount => settings.RedisSettings.DataLockRetryCount;
+    public int RetryDelayMilliseconds => settings.RedisSettings.DataLockRetryDelayMilliseconds;
     private RedisSettings Settings => settings.RedisSettings;
     
     public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null)

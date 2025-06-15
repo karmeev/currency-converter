@@ -4,7 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -13,13 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Domain\"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\..\Currency.Data.Contracts\Currency.Data.Contracts.csproj"/>
-        <ProjectReference Include="..\..\..\Currency.Infrastructure.Contracts\Currency.Infrastructure.Contracts.csproj"/>
-        <ProjectReference Include="..\..\..\Currency.Services\Currency.Services.csproj"/>
+      <Folder Include="Integrations\Providers\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -40,6 +34,10 @@
       <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
       <PackageReference Include="Serilog.Sinks.TextWriter" Version="3.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\src\Currency.Infrastructure\Currency.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
