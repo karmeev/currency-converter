@@ -1,0 +1,10 @@
+SELECT 15
+SET user:test-user:4632 "{\"Id\":\"4632\",\"Username\":\"test-user\",\"Password\":\"774BF7BECF6EFDF5090FFECFE79E641E07EF95C285F9B35E3AD0A73FA43075CB:772EB367D86958A68454DCCE0C711328\",\"Role\":0}"
+SET user:test-admin:3560 "{\"Id\":\"3560\",\"Username\":\"test-admin\",\"Password\":\"F95E4216E1B00572A465B35EB68AEB7108535C05A8A63FCE7665764460F1AB0A:F9456E65675EA6B8035E6A76B4368B4F\",\"Role\":1}"
+
+SELECT 0
+SET user:user-by-username:test-user user:test-user:4632
+SET user:user-by-username:test-admin user:test-admin:3560
+
+SET user:user-by-id:4632 user:test-user:4632
+SET user:user-by-id:3560 user:test-admin:3560

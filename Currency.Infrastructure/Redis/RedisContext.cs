@@ -11,6 +11,8 @@ internal class RedisContext(
     InfrastructureSettings settings,
     IConnectionMultiplexer connection) : IRedisContext
 {
+    private const string IndexesSecretKey = "indexes";
+    
     public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null)
     {
         var serialized = JsonSerializer.Serialize(value);
@@ -23,6 +25,16 @@ internal class RedisContext(
         var db = GetDatabase(key);
         var value = await db.StringGetAsync(key);
         return value.HasValue ? JsonSerializer.Deserialize<T>(value!) : default;
+    }
+    
+    public async Task<T> GetByIndexAsync<T>(string index)
+    {
+        var db = GetDatabase(IndexesSecretKey);
+        var value = await db.StringGetAsync(index);
+        var key = value.ToString();
+        db = GetDatabase(index);
+        var entity = await db.StringGetAsync(key);
+        return JsonSerializer.Deserialize<T>(entity!);
     }
     
     public async Task SortedSetAddAsync(string key, IEnumerable<RedisSortedSetEntry> entries, TimeSpan? ttl = null)
@@ -53,15 +65,21 @@ internal class RedisContext(
     {
         var redisSettings = settings.RedisSettings;
         
+        if (key == IndexesSecretKey)
+            return connection.GetDatabase(0);
+        
+        //TODO: add from settings
         if (key.StartsWith(EntityPrefix.AuthPrefix)) 
             return connection.GetDatabase(redisSettings.RefreshTokensDatabaseNumber);
         
-        //TODO: add from settings
         if (key.StartsWith(EntityPrefix.RatesHistoryPrefix)) 
             return connection.GetDatabase(2);
         
         if (key.StartsWith(EntityPrefix.ExchangeRatesPrefix)) 
             return connection.GetDatabase(3);
+        
+        if (key.StartsWith(EntityPrefix.UserPrefix)) 
+            return connection.GetDatabase(15);
 
         return connection.GetDatabase(redisSettings.EntitiesDatabaseNumber);
     }

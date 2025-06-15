@@ -1,5 +1,4 @@
 using Autofac;
-using Currency.Api.Models;
 using Currency.Infrastructure.Settings;
 using Currency.Services.Application.Settings;
 using Microsoft.Extensions.Options;
@@ -8,12 +7,12 @@ namespace Currency.Api;
 
 public static class Registry
 {
-    public static void RegisterDependencies(ContainerBuilder container, ConfigurationManager configurationManager)
+    public static void RegisterDependencies(ContainerBuilder container)
     {
         PopulateSettings(container);
         Facades.Registry.RegisterDependencies(container);
         Services.Registry.RegisterDependencies(container);
-        Data.Registry.RegisterDependencies(container, configurationManager.Get<UsersModel>().Users);
+        Data.Registry.RegisterDependencies(container);
         Infrastructure.Registry.RegisterDependencies(container);
     }
 

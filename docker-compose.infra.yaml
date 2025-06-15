@@ -11,6 +11,24 @@ services:
     networks:
       - currency_network
   
+  redis-init:
+    image: redis:7
+    depends_on:
+      - redis
+    networks:
+      - currency_network
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        until redis-cli -h redis ping; do
+          echo 'Waiting for Redis...';
+          sleep 1;
+        done;
+        redis-cli -h redis < /data/init-redis.redis
+    volumes:
+      - ./Resources/scripts/init-redis.redis:/data/init-redis.redis
+  
   elasticsearch:
     image: elasticsearch:9.0.2
     container_name: currency-converter-elasticsearch

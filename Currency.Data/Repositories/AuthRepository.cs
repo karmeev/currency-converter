@@ -13,7 +13,7 @@ internal class AuthRepository(IRedisContext context) : IAuthRepository
     
     public async Task AddRefreshToken(RefreshToken refreshToken)
     {
-        await context.SetAsync(Prefix + refreshToken.Token, refreshToken, refreshToken.ExpiresAt);
+        await context.SetAsync($"{Prefix}:{refreshToken.Token}", refreshToken, refreshToken.ExpiresAt);
     }
 
     public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken)

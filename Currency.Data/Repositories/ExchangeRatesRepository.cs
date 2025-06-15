@@ -16,14 +16,14 @@ internal class ExchangeRatesRepository(IRedisContext context) : IExchangeRatesRe
         
         //TODO: TTL should be implements from settings!
         var ttl = new TimeSpan(0,0,3,0,0);
-        await context.SetAsync($"{Prefix}{id}", exchangeRates, ttl);
+        await context.SetAsync($"{Prefix}:{id}", exchangeRates, ttl);
     }
 
     public async Task<ExchangeRates> GetExchangeRates(string id, CancellationToken token)
     {
         //if (token.IsCancellationRequested) return;
         
-        var rates = await context.GetAsync<ExchangeRates>($"{Prefix}{id}");
+        var rates = await context.GetAsync<ExchangeRates>($"{Prefix}:{id}");
         return rates;
     }
 
@@ -33,14 +33,14 @@ internal class ExchangeRatesRepository(IRedisContext context) : IExchangeRatesRe
         
         //TODO: TTL should be implements from settings!
         var ttl = new TimeSpan(0,0,3,0,0);
-        await context.SetAsync($"{Prefix}{id}", conversion, ttl);
+        await context.SetAsync($"{Prefix}:{id}", conversion, ttl);
     }
 
     public async Task<CurrencyConversion> GetCurrencyConversionAsync(string id, CancellationToken token)
     {
         //if (token.IsCancellationRequested) return;
         
-        var currency = await context.GetAsync<CurrencyConversion>($"{Prefix}{id}");
+        var currency = await context.GetAsync<CurrencyConversion>($"{Prefix}:{id}");
         return currency;
     }
 }

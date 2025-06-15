@@ -1,23 +1,26 @@
-using System.Collections.Immutable;
 using Currency.Data.Contracts;
 using Currency.Domain.Login;
 using Currency.Domain.Users;
+using Currency.Infrastructure.Contracts.Databases.Base;
+using Currency.Infrastructure.Contracts.Databases.Redis;
 
 namespace Currency.Data.Repositories;
 
-internal class UsersRepository : IUsersRepository
+internal class UsersRepository(IRedisContext context) : IUsersRepository
 {
-    internal ImmutableList<User> Users { get; set; } = ImmutableList<User>.Empty;
-
-    public async ValueTask<User> GetUserByUsernameAsync(LoginModel model)
+    private static string Prefix => EntityPrefix.UserPrefix;
+    
+    public async Task<User> GetUserByUsernameAsync(LoginModel model)
     {
-        var user = Users.Find(u => u.Username == model.Username);
+        var index = $"{Prefix}:user-by-username:{model.Username}";
+        var user = await context.GetByIndexAsync<User>(index);
         return user;
     }
 
-    public async ValueTask<User> GetUserByIdAsync(string id)
+    public async Task<User> GetUserByIdAsync(string id)
     {
-        var user = Users.Find(u => u.Id == id);
+        var index = $"{Prefix}:user-by-id:{id}";
+        var user = await context.GetByIndexAsync<User>(index);
         return user;
     }
 }

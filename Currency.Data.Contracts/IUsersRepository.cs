@@ -5,6 +5,6 @@ namespace Currency.Data.Contracts;
 
 public interface IUsersRepository
 {
-    ValueTask<User> GetUserByUsernameAsync(LoginModel model);
-    ValueTask<User> GetUserByIdAsync(string id);
+    Task<User> GetUserByUsernameAsync(LoginModel model);
+    Task<User> GetUserByIdAsync(string id);
 }
