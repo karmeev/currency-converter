@@ -52,7 +52,7 @@ public class FrankfurterClientTests
     }
 
     private HttpClient _client;
-    private const string WireMockAddress = "http://localhost:8080";
+    private const string WireMockAddress = "http://localhost:8085";
 
     [Test]
     public async Task GetLatestExchangeRateAsync_HappyPath_ReturnsLatestUsdRates()
