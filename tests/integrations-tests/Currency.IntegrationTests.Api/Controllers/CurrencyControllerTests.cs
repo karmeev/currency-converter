@@ -1,19 +1,34 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Currency.Facades.Contracts.Requests;
 
 namespace Currency.IntegrationTests.Api.Controllers;
 
 [TestFixture]
-//[Category("Integration")]
+[Category("Integration")]
 public class CurrencyControllerTests
 {
     private HttpClient _client;
 
     [SetUp]
-    public void Setup()
+    public async Task Setup()
     {
         _client = ApiTestFixture.Client;
+        
+        var request = new LoginRequest
+        {
+            Username = "test-user",
+            Password = "my_test_password"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
+        var token = (await response.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("accessToken")
+            .GetString();
+        
         _client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", "valid-jwt-token");
+            new AuthenticationHeaderValue("Bearer", token);
     }
 
     [Test]
@@ -27,7 +42,7 @@ public class CurrencyControllerTests
     [Test]
     public async Task ConvertCurrency_ShouldReturnResult()
     {
-        var url = "/api/v1/Currency/convert?amount=100&fromCurrency=USD&toCurrency=EUR";
+        var url = "/api/v1/Currency/convert?amount=100&from=USD&to=EUR";
 
         var response = await _client.PostAsync(url, null);
 

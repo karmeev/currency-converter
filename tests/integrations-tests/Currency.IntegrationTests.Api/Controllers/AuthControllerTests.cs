@@ -6,7 +6,7 @@ using Currency.Facades.Contracts.Requests;
 namespace Currency.IntegrationTests.Api.Controllers;
 
 [TestFixture]
-//[Category("Integration")]
+[Category("Integration")]
 public class AuthControllerTests
 {
     private HttpClient _client;
@@ -22,8 +22,8 @@ public class AuthControllerTests
     {
         var request = new LoginRequest
         {
-            Username = "testuser",
-            Password = "testpassword"
+            Username = "test-user",
+            Password = "my_test_password"
         };
 
         var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
@@ -33,20 +33,44 @@ public class AuthControllerTests
         var json = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.That(json.GetProperty("accessToken").GetString(), Is.Not.Null.And.Not.Empty);
     }
+    
+    [Test]
+    public async Task LoginAsync_ShouldReturnAccessToken_WhenInvalidCredentials()
+    {
+        var request = new LoginRequest
+        {
+            Username = "testuser",
+            Password = "testpassword"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
 
     [Test]
     public async Task RefreshToken_ShouldReturnAccessToken_WhenValid()
     {
-        var request = new RefreshTokenRequest
+        var request = new LoginRequest
         {
-            Token = "valid-refresh-token"
+            Username = "test-user",
+            Password = "my_test_password"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/Auth/refreshToken", request);
+        var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
+        var authJson = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var token = authJson.GetProperty("refreshToken").GetString();
+        
+        var refreshTokenRequest = new RefreshTokenRequest
+        {
+            Token = token
+        };
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var refreshTokenResponse = await _client.PostAsJsonAsync("/api/v1/Auth/refreshToken", refreshTokenRequest);
 
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.That(refreshTokenResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var json = await refreshTokenResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.That(json.GetProperty("accessToken").GetString(), Is.Not.Null.And.Not.Empty);
     }
 }

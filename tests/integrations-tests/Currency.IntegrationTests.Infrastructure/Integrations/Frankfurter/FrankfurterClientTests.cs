@@ -37,7 +37,7 @@ public class FrankfurterClientTests
                 Frankfurter = new FrankfurterSettings
                 {
                     BaseAddress = config.GetSection("FrankfurterUrl").Value,
-                    TimeoutSeconds = 5,
+                    TimeoutSeconds = 10,
                     RetryCount = 4,
                     RetryExponentialIntervalSeconds = 2,
                     CircuitBreakerDurationBreakSeconds = 10,
