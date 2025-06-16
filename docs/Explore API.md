@@ -12,6 +12,8 @@ If you receive a `401 Unauthorized` response, use the refresh token endpoint to 
 > [!TIP]
 > Postman will automatically apply the latest access token from your login or refresh requests.
 
+<img src="./assets/image-1.png" alt="Architecture Diagram" width="600"/>
+
 ### :fire: Step 2: Use the API
 You're now ready to explore and interact with the API!
 
