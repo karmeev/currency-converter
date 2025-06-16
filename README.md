@@ -25,6 +25,10 @@ A high-performance currency conversion API built with ASP.NET Core, Redis, ELK, 
    make stop
    ```
 
+> [!WARNING]  
+> Launching an API with multiple instances has a strong CPU consumption. This reduces performance.
+Be careful with the launch and terminate instances if there are performance issues.
+
 ### Assumptions Made
 - 🔁 **Frankfurter API** is always available and responds within acceptable latency bounds. \
   The system uses retry and circuit breaker policies, but it's assumed downtime is rare and short-lived.
@@ -65,5 +69,6 @@ No internal guardrails beyond basic validation are in place for absurd requests 
 
 3. **Asynchronous Caching with Kafka & Background Workers**  
    Introduce Kafka as a message broker and implement background worker services to asynchronously update and maintain the cache. 
+
 4. **Load and Stress Testing Automation**  
    Implement automated load and stress testing (e.g., using k6, Artillery, or Locust) to validate API performance under high traffic.
