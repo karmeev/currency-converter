@@ -1,10 +1,7 @@
 name: worker-node-3
 services:
   api:
-    build:
-      context: ../../src
-      dockerfile: ./Currency.Api/Dockerfile
-    image: currency-converter-api:latest
+    image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - APP_VERSION=${APP_VERSION}

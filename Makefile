@@ -1,6 +1,9 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
 VERSION := $(shell cat $(ROOT_DIR)/VERSION.txt)
 
+PROFILE := currency-converter-cluster
+DRIVER := docker
+
 UNIT_TESTS=./tests/unit-tests
 INTEGRATION_TESTS=./tests/integrations-tests
 APP=infra/docker
@@ -70,14 +73,15 @@ coverage:
 		-assemblyfilters:+Currency.*;-*.Contracts;-*Tests;-xunit*;-System.*;-Microsoft.*
 
 integration_tests_up:
+	echo "IMAGE_TAG=$(IMAGE_TAG)" > infra/docker/.env
 	echo "APP_VERSION=$(cat VERSION.txt)" > .env
 	docker network inspect currency_network >/dev/null 2>&1 || docker network create currency_network && \
-    docker compose --env-file .env -f ${APP_TEST}/docker-compose.worker.yaml up -d
+    docker compose -f ${APP_TEST}/docker-compose.worker.yaml up -d
 	sleep 2s
 	docker compose --env-file .env -f ${APP_TEST}/docker-compose.worker3.yaml up -d
 	sleep 4s
-	docker compose --env-file .env -f ${APP_TEST}/docker-compose.worker2.yaml up -d
-	docker compose --env-file .env -f ${APP_TEST}/docker-compose.master.yaml up -d
+	docker compose -f ${APP_TEST}/docker-compose.worker2.yaml up -d
+	docker compose -f ${APP_TEST}/docker-compose.master.yaml up -d
 
 integration_tests_down:
 	docker compose -f ${APP_TEST}/docker-compose.master.yaml down
