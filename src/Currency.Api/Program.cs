@@ -31,5 +31,6 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 app.Run();
