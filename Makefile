@@ -73,8 +73,9 @@ coverage:
 		-assemblyfilters:+Currency.*;-*.Contracts;-*Tests;-xunit*;-System.*;-Microsoft.*
 
 integration_tests_up:
+	echo "Using IMAGE_TAG: $(IMAGE_TAG)"
 	echo "IMAGE_TAG=$(IMAGE_TAG)" > infra/docker/.env
-	echo "APP_VERSION=$(cat VERSION.txt)" > .env
+	echo "APP_VERSION=$(cat VERSION.txt)" >> .env
 	docker network inspect currency_network >/dev/null 2>&1 || docker network create currency_network && \
     docker compose -f ${APP_TEST}/docker-compose.worker.yaml up -d
 	sleep 2s
