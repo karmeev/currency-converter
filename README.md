@@ -25,6 +25,8 @@ A high-performance currency conversion API built with ASP.NET Core, Redis, ELK, 
    make stop
    ```
 
+4. [Explore API](docs/Explore%20API.md)
+
 > [!WARNING]  
 > Launching an API with multiple instances has a strong CPU consumption. This reduces performance.
 Be careful with the launch and terminate instances if there are performance issues.
