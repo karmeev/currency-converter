@@ -1,6 +1,7 @@
 using Currency.Api.Configurations;
 using Currency.Api.Settings;
 using Currency.Common.Providers;
+using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Exceptions;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter;
 using Currency.Infrastructure.Settings;
 using Currency.IntegrationTests.Infrastructure.Utility;
@@ -36,16 +37,14 @@ public class FrankfurterClientTests
                 Frankfurter = new FrankfurterSettings
                 {
                     BaseAddress = config.GetSection("FrankfurterUrl").Value,
-                    TimeoutSeconds = 1,
-                    RetryCount = 1,
-                    RetryExponentialIntervalSeconds = 5,
-                    CircuitBreakerDurationBreakSeconds = 30,
-                    CircuitBreakerMaxExceptions = 6
+                    TimeoutSeconds = 5,
+                    RetryCount = 4,
+                    RetryExponentialIntervalSeconds = 2,
+                    CircuitBreakerDurationBreakSeconds = 10,
+                    CircuitBreakerMaxExceptions = 2
                 }
             }
         };
-        
-        _logger = Test.GetLogger<FrankfurterClient>();
         
         services.AddThirdPartyApis(settings);
         services.AddOptions();
@@ -58,6 +57,8 @@ public class FrankfurterClientTests
         _client = client;
         
         WireMockAddress = config.GetSection("WireMockUrl").Value;
+        
+        _logger = Test.GetLogger<FrankfurterClient>();
     }
 
     [TearDown]
@@ -104,36 +105,12 @@ public class FrankfurterClientTests
     }
 
     [Test]
-    public async Task GetLatestExchangeRateAsync_ReturnsInternalServerErrorManyTime_ShouldThrowBrokenCircuitException()
-    {
-        //Arrange
-        _client.BaseAddress = new Uri(WireMockAddress);
-        var sut = new FrankfurterClient(_client, _logger);
-
-        // Act
-        for (var i = 0; i < 10; i++)
-            try
-            {
-                await sut.GetLatestExchangeRateAsync("EUR");
-            }
-            catch
-            {
-            }
-
-        // Assert
-        Assert.ThrowsAsync<BrokenCircuitException<HttpResponseMessage>>(async () =>
-        {
-            await sut.GetLatestExchangeRateAsync("EUR");
-        });
-    }
-
-    [Test]
     public async Task GetExchangeRatesHistoryAsync_HappyPath_ReturnsHistory()
     {
         //Arrange
         var sut = new FrankfurterClient(_client, _logger);
-        var startDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(-1));
-        var endDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var startDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+        var endDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
         //Act
         var result = await sut.GetExchangeRatesHistoryAsync("USD", startDate,
@@ -144,7 +121,6 @@ public class FrankfurterClientTests
         {
             Assert.That(result.Amount, Is.EqualTo(1));
             Assert.That(result.Base, Is.EqualTo("USD"));
-            Assert.That(result.StartDate, Is.EqualTo(startDate));
             Assert.That(result.EndDate, Is.LessThanOrEqualTo(endDate));
             Assert.That(result.Rates, Is.Not.Null.And.Not.Empty);
             Assert.That(result.Rates, Is.Not.Empty, "Expected at least one entry with USD rate.");

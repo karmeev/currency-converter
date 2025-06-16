@@ -91,7 +91,7 @@ internal class FrankfurterClient(
         {
             var ex = new InvalidOperationException("Deserialization resulted in null.");
             logger.LogError(ex, "Frankfurter API: Deserialization resulted in null.");
-            return HttpProviderException.Throw<T>("Frankfurter API: Deserialization resulted in null.", ex);
+            throw new HttpProviderException("Frankfurter API: Unexpected response", ex);
         }
 
         return result;
@@ -113,36 +113,39 @@ internal class FrankfurterClient(
             var traceId = Activity.Current?.TraceId.ToString() ?? "N/A";
             logger.LogInformation("TraceId: {TraceId}; Frankfurter responded with status {StatusCode} in {ElapsedMilliseconds}ms",
                 traceId, response.StatusCode, stopwatch.ElapsedMilliseconds);
-
+            
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("Frankfurter request failed with status code {StatusCode}", response.StatusCode);
             }
+            
+            response.EnsureSuccessStatusCode();
 
             return response;
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.InnerException is BrokenCircuitException bce)
+            {
+                logger.LogWarning(bce, "Frankfurter API circuit breaker is open. Requests are temporarily blocked.");
+                throw new HttpProviderException(
+                    "Frankfurter API is currently unavailable due to repeated failures. Please try again later.", bce);
+            }
+
+            logger.LogWarning(ex, "Frankfurter request failed due to network or non-success HTTP code.");
+            throw;
         }
         catch (Polly.Timeout.TimeoutRejectedException ex)
         {
             logger.LogError(ex, "Frankfurter API timeout: request did not complete within the allotted time. " +
                                 "Exception: {Message}", ex.Message);
-            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API don't respond", ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "Frankfurter API: Frankfurter is not available. Exception: {Exception}", 
-                ex.Message);
-            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API is not available", ex);
+            throw new HttpProviderException("Frankfurter API don't respond", ex);
         }
         catch (BrokenCircuitException ex)
         {
             logger.LogWarning(ex, "Frankfurter API circuit breaker is open. Requests are temporarily blocked.");
-            return HttpProviderException.Throw<HttpResponseMessage>(
+            throw new HttpProviderException(
                 "Frankfurter API is currently unavailable due to repeated failures. Please try again later.", ex);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Frankfurter API: request failed! Exception: {Exception}", ex.Message);
-            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API unreachable or request malformed", ex);
         }
     }
     

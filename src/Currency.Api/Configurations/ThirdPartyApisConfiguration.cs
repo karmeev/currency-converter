@@ -72,17 +72,8 @@ public static class ThirdPartyApisConfiguration
                 durationOfBreak: TimeSpan.FromSeconds(settings.CircuitBreakerDurationBreakSeconds),
                 onBreak: (outcome, timespan) =>
                 {
-                    if (outcome.Exception is not null)
-                    {
-                        logger.LogError("Circuit Breaker: {state}, Request ended with error: {exception}, " +
-                                        "StatusCode: {status}, Time: {time}", 
-                            onBreakState, outcome.Exception, outcome.Result.StatusCode, timespan);
-                    }
-                    else
-                    {
-                        logger.LogInformation("Circuit Breaker: {state}, StatusCode: {status}, Time: {time}", 
-                            onBreakState, outcome.Result.StatusCode, timespan);
-                    }
+                    logger.LogInformation("Circuit Breaker: {state}, StatusCode: {status}, Time: {time}, Reason: {reason}", 
+                        onBreakState, outcome.Result.StatusCode, timespan, outcome.Result.ReasonPhrase);
                 },
                 onReset: () =>
                 {

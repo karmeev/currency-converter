@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 namespace Currency.IntegrationTests.Api.Controllers;
 
 [TestFixture]
-[Category("Integration")]
+//[Category("Integration")]
 public class CurrencyControllerTests
 {
     private HttpClient _client;

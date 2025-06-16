@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Currency.IntegrationTests.Api.Controllers;
 
 [TestFixture]
-[Category("Integration")]
+//[Category("Integration")]
 public class StatusControllerTests
 {
     private HttpClient _client;

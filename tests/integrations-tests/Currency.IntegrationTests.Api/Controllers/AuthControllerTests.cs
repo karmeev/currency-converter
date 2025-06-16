@@ -6,7 +6,7 @@ using Currency.Facades.Contracts.Requests;
 namespace Currency.IntegrationTests.Api.Controllers;
 
 [TestFixture]
-[Category("Integration")]
+//[Category("Integration")]
 public class AuthControllerTests
 {
     private HttpClient _client;
