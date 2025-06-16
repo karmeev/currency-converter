@@ -54,3 +54,16 @@ This assumes fair usage distribution among multiple consumers.
 No internal guardrails beyond basic validation are in place for absurd requests (e.g., 50 years of data in one go).
 
 - 🏗️ **Deployment environments** (Dev, Test, Prod) have consistent configurations apart from secrets and URLs.
+
+## :chart_with_upwards_trend: Possible Future Enhancements
+
+1. **Dynamic Configuration via Consul**  
+   Integrate Consul or another configuration provider to allow real-time updates of application settings without requiring application restarts.
+
+2. **Microservice Separation**  
+   Decouple authentication and authorization logic from the currency conversion API.
+
+3. **Asynchronous Caching with Kafka & Background Workers**  
+   Introduce Kafka as a message broker and implement background worker services to asynchronously update and maintain the cache. 
+4. **Load and Stress Testing Automation**  
+   Implement automated load and stress testing (e.g., using k6, Artillery, or Locust) to validate API performance under high traffic.
