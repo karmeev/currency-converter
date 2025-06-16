@@ -49,11 +49,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      packages: write
-      contents: read
+      contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create Git tag and push
         run: |
@@ -62,7 +62,7 @@ jobs:
             echo "Tag $VERSION_TAG already exists. Skipping."
             exit 0
           fi
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "karmeev"
+          git config user.email "karmeevtech@gmail.com"
           git tag $VERSION_TAG
           git push origin $VERSION_TAG
