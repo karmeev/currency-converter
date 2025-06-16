@@ -1,0 +1,26 @@
+name: worker-node-2
+services:
+  kibana:
+    image: kibana:9.0.2
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - currency_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.48
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    networks:
+      - currency_network
+
+networks:
+  currency_network:
+    name: currency_network
+    external: true

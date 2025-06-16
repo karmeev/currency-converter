@@ -1,0 +1,92 @@
+name: Testing workflow
+run-name: Testing workflow
+on:
+  push:
+    branches: [ test ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.301'
+
+      - name: Install Make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Restore and Build
+        run: |
+          dotnet restore ./src/currency-converter.sln
+          dotnet build ./src/currency-converter.sln --configuration Release --no-restore
+  
+  unit-tests:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.301'
+
+      - name: Install Make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Restore dependencies
+        working-directory: ./src
+        run: dotnet restore
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Add .NET tools to PATH
+        run: echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Run unit tests with coverage via Makefile
+        run: make coverage
+
+      - name: Append coverage summary to GitHub
+        if: always()
+        run: cat ./TestResults/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload full coverage report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./TestResults/CoverageReport
+        
+  integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.301'
+
+      - name: Restore and Build
+        run: |
+          dotnet restore ./src/currency-converter.sln
+          dotnet build ./src/currency-converter.sln --configuration Release --no-restore
+          
+      - name: Start Currency API & WireMock
+        run: make integration_tests_up
+
+      - name: Run Integration Tests
+        run: make test CATEGORY=Integration
+        
+      - name: Stop API & WireMock
+        if: always()
+        run: make integration_tests_down

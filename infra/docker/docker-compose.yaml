@@ -1,0 +1,18 @@
+name: master-node
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - currency_network
+        
+networks:
+  currency_network:
+    name: currency_network
+    external: true
+    
+volumes:
+  key_protection_volume:

@@ -1,0 +1,22 @@
+name: worker-node-3
+services:
+  api:
+    build:
+      context: ../../src
+      dockerfile: ./Currency.Api/Dockerfile
+    image: currency-converter-api:latest
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - currency_network
+    volumes:
+      - key_protection_volume:/root/.aspnet/DataProtection-Keys
+      - ./configs/appsettings.json:/app/appsettings.json
+        
+networks:
+  currency_network:
+    name: currency_network
+    external: true
+
+volumes:
+  key_protection_volume:

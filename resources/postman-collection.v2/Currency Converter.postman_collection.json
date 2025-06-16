@@ -139,7 +139,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{url}}/api/v1/currency?base=USD&startDate=2025-06-29&endDate=2025-06-30&page=1&size=5",
+									"raw": "{{url}}/api/v1/currency?base=USD&startDate=2025-05-29&endDate=2025-05-30&page=1&size=5",
 									"host": [
 										"{{url}}"
 									],
@@ -156,11 +156,11 @@
 										},
 										{
 											"key": "startDate",
-											"value": "2025-06-29"
+											"value": "2025-05-29"
 										},
 										{
 											"key": "endDate",
-											"value": "2025-06-30"
+											"value": "2025-05-30"
 										},
 										{
 											"key": "page",
@@ -182,16 +182,32 @@
 							"request": {
 								"method": "POST",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"amount\": 1,\n    \"from\": \"EUR\",\n    \"to\": \"USD\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
+								"url": {
+									"raw": "{{url}}/api/v1/currency/convert?amount=10&from=USD&to=EUR",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"currency",
+										"convert"
+									],
+									"query": [
+										{
+											"key": "amount",
+											"value": "10"
+										},
+										{
+											"key": "from",
+											"value": "USD"
+										},
+										{
+											"key": "to",
+											"value": "EUR"
 										}
-									}
-								},
-								"url": "{{url}}/api/v1/currency/convert"
+									]
+								}
 							},
 							"response": []
 						}

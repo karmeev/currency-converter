@@ -1,0 +1,37 @@
+name: master-workflow.yaml
+run-name: Release build and tag
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.301'
+
+      - name: Restore and Build
+        run: |
+          dotnet restore ./src/currency-converter.sln
+          dotnet build ./src/currency-converter.sln --configuration Release --no-restore
+          
+  tag:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read version and create Git tag
+        run: |
+          VERSION_TAG="v$(cat VERSION.txt)"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag $VERSION_TAG
+          git push origin $VERSION_TAG
