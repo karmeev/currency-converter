@@ -1,5 +1,5 @@
-name: master-workflow.yaml
-run-name: Release build and tag
+name: 🚀 Release build and tag
+run-name: 🚀 Release build and tag ${{ github.ref_name }}
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.CURRENCY_CI }}
 
       - name: Build and push Docker image with release tag
         run: |
