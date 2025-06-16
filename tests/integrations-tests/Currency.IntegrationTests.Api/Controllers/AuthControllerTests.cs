@@ -47,6 +47,33 @@ public class AuthControllerTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
+    
+    [Test]
+    public async Task LoginAsync_ShouldReturnTooManyRequests_WhenUserMakesManyRequest()
+    {
+        var request = new LoginRequest
+        {
+            Username = "test-user",
+            Password = "my_test_password"
+        };
+
+        var requestTasks = new List<Task>();
+        for (int i = 0; i < 20; i++)
+        {
+            try
+            {
+                var task = Task.Run(async () => await _client.PostAsJsonAsync("/api/v1/Auth/login", request));
+                requestTasks.Add(task);
+            }
+            catch {}
+        }
+        
+        await Task.WhenAll(requestTasks);
+
+        var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.TooManyRequests));
+    }
 
     [Test]
     public async Task RefreshToken_ShouldReturnAccessToken_WhenValid()
