@@ -2,6 +2,7 @@ name: worker-node-1
 services:
   redis:
     image: redis:latest
+    container_name: redis
     restart: always
     volumes:
       - currency_redis_data:/data
@@ -12,6 +13,7 @@ services:
   
   redis-init:
     image: redis:7
+    container_name: redis-init-job
     depends_on:
       - redis
     networks:
@@ -30,6 +32,7 @@ services:
   
   elasticsearch:
     image: elasticsearch:9.0.2
+    container_name: elk
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false

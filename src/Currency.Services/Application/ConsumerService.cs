@@ -27,17 +27,17 @@ internal class ConsumerService(
         Task.Run(() => ReceiveCurrencyConversionMessage(_cts.Token));
         Task.Run(() => ReceiveExchangeRatesMessage(_cts.Token));
         
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 2; i++)
         {
             Task.Run(() => ConsumeHistory(_cts.Token));
         }
         
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 2; i++)
         {
             Task.Run(() => ConsumeCurrencyConversion(_cts.Token));
         }
         
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 2; i++)
         {
             Task.Run(() => ConsumeExchangeRates(_cts.Token));
         }

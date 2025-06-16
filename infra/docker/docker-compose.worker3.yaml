@@ -1,10 +1,8 @@
 name: worker-node-3
 services:
   api:
-    build:
-      context: ../../src
-      dockerfile: ./Currency.Api/Dockerfile
-    image: currency-converter-api:latest
+    container_name: api-instance-1
+    image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - APP_VERSION=${APP_VERSION}
@@ -15,10 +13,8 @@ services:
       - ./configs/appsettings.json:/app/appsettings.json
 
   api-2:
-    build:
-      context: ../../src
-      dockerfile: ./Currency.Api/Dockerfile
-    image: currency-converter-api:latest
+    container_name: api-instance-2
+    image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - APP_VERSION=${APP_VERSION}
@@ -29,10 +25,8 @@ services:
       - ./configs/appsettings.json:/app/appsettings.json
 
   api-3:
-    build:
-      context: ../../src
-      dockerfile: ./Currency.Api/Dockerfile
-    image: currency-converter-api:latest
+    container_name: api-instance-3
+    image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - APP_VERSION=${APP_VERSION}

@@ -3,7 +3,6 @@ services:
   api:
     image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
       - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network

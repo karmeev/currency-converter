@@ -2,6 +2,7 @@ name: worker-node-2
 services:
   kibana:
     image: kibana:9.0.2
+    container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
@@ -11,6 +12,7 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:1.48
+    container_name: jaeger
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:

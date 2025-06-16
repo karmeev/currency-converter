@@ -21,14 +21,14 @@ INTEGRATION_TEST_PROJECTS := \
     Currency.IntegrationTests.Api/Currency.IntegrationTests.Api.csproj \
 
 currency:
-	echo "APP_VERSION=$(VERSION)" > $(ROOT_DIR)/.env
+	echo "IMAGE_TAG=v$(VERSION)" > $(ROOT_DIR)/.env
+	echo "APP_VERSION=$(cat VERSION.txt)" >> .env
 	docker network inspect currency_network >/dev/null 2>&1 || docker network create currency_network && \
-    docker compose --env-file .env -f ${APP}/docker-compose.worker.yaml up -d
-	sleep 2s
+    docker compose -f ${APP}/docker-compose.worker.yaml up -d
+	sleep 6s
+	docker compose -f ${APP}/docker-compose.worker2.yaml up -d
 	docker compose --env-file .env -f ${APP}/docker-compose.worker3.yaml up -d
-	sleep 4s
-	docker compose --env-file .env -f ${APP}/docker-compose.worker2.yaml up -d
-	docker compose --env-file .env -f ${APP}/docker-compose.master.yaml up -d
+	docker compose -f ${APP}/docker-compose.master.yaml up -d
 
 stop:
 	docker compose -f ${APP}/docker-compose.master.yaml down
