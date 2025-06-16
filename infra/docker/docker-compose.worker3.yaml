@@ -7,6 +7,7 @@ services:
     image: currency-converter-api:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:
@@ -20,6 +21,7 @@ services:
     image: currency-converter-api:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:
@@ -33,6 +35,7 @@ services:
     image: currency-converter-api:latest
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:

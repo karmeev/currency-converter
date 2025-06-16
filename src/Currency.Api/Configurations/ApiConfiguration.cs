@@ -21,6 +21,11 @@ public static class ApiConfiguration
 {
     public static void AddSettings(this IServiceCollection services, string env, out StartupSettings settings)
     {
+        var appVersion = Environment.GetEnvironmentVariable("APP_VERSION");
+        if (string.IsNullOrEmpty(appVersion))
+        {
+            appVersion = "1.0.0";
+        }
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
             .AddJsonFile($"appsettings.{env}.json", true, true)
@@ -61,7 +66,7 @@ public static class ApiConfiguration
             loggerSettings.ElasticLogLevel = LogEventLevel.Information;
         }
         
-        loggerSettings.AppVersion = configuration.GetSection("AppVersion").Value;
+        loggerSettings.AppVersion = appVersion;
         loggerSettings.Application = configuration.GetSection("Application").Value;
         loggerSettings.Environment = env;
         loggerSettings.EnableDebugOptions = configuration.GetSection($"{loggerSection}:EnableDebugOptions").
