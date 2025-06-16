@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Currency.Api.Models;
 using Currency.Api.Schemes;
 using Currency.Facades.Contracts.Exceptions;
+using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Exceptions;
 using Serilog.Context;
 
 namespace Currency.Api.Middlewares;
@@ -28,14 +29,33 @@ public class ExceptionHandlerMiddleware
         {
             await HandleValidationException(context, validationException);
         }
+        catch (HttpProviderException providerException)
+        {
+            await HandleHttpProviderException(context, providerException);
+        }
         catch (Exception ex)
         {
             await HandleException(context, ex);
         }
     }
 
+    private async Task HandleHttpProviderException(HttpContext context, HttpProviderException ex)
+    {
+        Log(context, ex);
+        
+        context.Response.StatusCode = (int)HttpStatusCode.FailedDependency;
+        await context.Response.WriteAsJsonAsync(new ErrorResponseScheme
+        {
+            Error = ErrorMessage.FailedDependency,
+            Message = ex.Message,
+            Details = BuildDetails(context, ex)
+        });
+    }
+    
     private async Task HandleValidationException(HttpContext context, ValidationException ex)
     {
+        Log(context, ex);
+        
         context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
         await context.Response.WriteAsJsonAsync(new ErrorResponseScheme
         {
@@ -47,7 +67,19 @@ public class ExceptionHandlerMiddleware
 
     private async Task HandleException(HttpContext context, Exception ex)
     {
-        // Push same properties for context consistency in exception logs
+        Log(context, ex);
+
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        await context.Response.WriteAsJsonAsync(new ErrorResponseScheme
+        {
+            Error = ErrorMessage.InternalServerError,
+            Message = "An unexpected error occurred while processing your request.",
+            Details = BuildDetails(context, ex)
+        });
+    }
+
+    private void Log(HttpContext context, Exception ex)
+    {
         var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "undefined";
         var requestId = context.TraceIdentifier;
         var clientId = context.User?.Claims.FirstOrDefault(c => 
@@ -57,20 +89,48 @@ public class ExceptionHandlerMiddleware
         using (LogContext.PushProperty("RequestId", requestId))
         using (LogContext.PushProperty("ClientId", clientId))
         {
-            _logger.LogError(ex, "Unexpected error occurred: {Message}. TraceId: {TraceId}", ex.Message, requestId);
+            _logger.LogError(ex, "Error occurred: {Message}. TraceId: {TraceId}", ex.Message, requestId);
         }
+    }
 
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-        await context.Response.WriteAsJsonAsync(new ErrorResponseScheme
+    private object BuildDetails(HttpContext context, Exception ex, string[] errors = null)
+    {
+        var env =  Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (env is "Development") return BuildDevelopmentDetails(context, ex, errors);
+        
+        if (errors != null)
         {
-            Error = ErrorMessage.InternalServerError,
-            Message = "An unexpected error occurred while processing your request.",
-            Details = new
+            return new
             {
-                TraceId = requestId,
+                TraceId = context.TraceIdentifier,
+                Errors = errors
+            };
+        }
+        
+        return new
+        {
+            TraceId = context.TraceIdentifier,
+        };
+    }
+
+    private static object BuildDevelopmentDetails(HttpContext context, Exception ex, string[] errors)
+    {
+        if (errors != null)
+        {
+            return new
+            {
+                TraceId = context.TraceIdentifier,
+                Errors = errors,
                 Message = ex.Message,
-                StackTrace = ex.StackTrace,
-            }
-        });
+                StackTrace = ex.StackTrace
+            };
+        }
+        
+        return new
+        {
+            TraceId = context.TraceIdentifier,
+            Message = ex.Message,
+            StackTrace = ex.StackTrace,
+        };
     }
 }

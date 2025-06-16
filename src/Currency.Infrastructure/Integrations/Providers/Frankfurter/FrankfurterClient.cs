@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Exceptions;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Polly.CircuitBreaker;
 
 namespace Currency.Infrastructure.Integrations.Providers.Frankfurter;
 
@@ -34,10 +36,7 @@ internal class FrankfurterClient(
         logger.LogInformation("Requesting latest exchange rate from Frankfurter. Base: {Currency}, URI: {Uri}", 
             currency, uri);
 
-        var response = await WithStopwatchAsync(async () => await client.GetAsync(uri, token));
-        
-        response.EnsureSuccessStatusCode();
-
+        var response = await HandleAsync(async () => await client.GetAsync(uri, token));
         return await ReadAndDeserializeAsync<GetLatestExchangeRateResponse>(response.Content, token);
     }
 
@@ -55,9 +54,7 @@ internal class FrankfurterClient(
         logger.LogInformation("Requesting latest exchange rates from Frankfurter. URI: {Uri}, " +
                               "from: {from}, symbols: {Symbols}", uri.ToString(), from, symbols);
         
-        var response = await WithStopwatchAsync(async () => await client.GetAsync(uri, token));
-        response.EnsureSuccessStatusCode();
-
+        var response = await HandleAsync(async () => await client.GetAsync(uri, token));
         return await ReadAndDeserializeAsync<GetLatestExchangeRatesResponse>(response.Content, token);
     }
 
@@ -75,9 +72,7 @@ internal class FrankfurterClient(
         logger.LogInformation("Requesting exchange rates history from Frankfurter. Base: {Currency}, URI: {Uri}, " +
                               "start: {start:yyyy-MM-dd}, end: {end:yyyy-MM-dd}", currency, start, end, uri);
         
-        var response = await WithStopwatchAsync(async () => await client.GetAsync(uri, token));
-        response.EnsureSuccessStatusCode();
-
+        var response = await HandleAsync(async () => await client.GetAsync(uri, token));
         return await ReadAndDeserializeAsync<GetExchangeRatesHistoryResponse>(response.Content, token);
     }
     
@@ -92,8 +87,12 @@ internal class FrankfurterClient(
         var content = await response.ReadAsStringAsync(ct);
         var result = JsonConvert.DeserializeObject<T>(content);
 
-        if (result is null) 
-            throw new InvalidOperationException("Deserialization resulted in null.");
+        if (result is null)
+        {
+            var ex = new InvalidOperationException("Deserialization resulted in null.");
+            logger.LogError(ex, "Frankfurter API: Deserialization resulted in null.");
+            return HttpProviderException.Throw<T>("Frankfurter API: Deserialization resulted in null.", ex);
+        }
 
         return result;
     }
@@ -103,7 +102,7 @@ internal class FrankfurterClient(
         Activity.Current?.SetTag("frankfurter.uri", uri.ToString());
     }
     
-    private async Task<HttpResponseMessage> WithStopwatchAsync(Func<Task<HttpResponseMessage>> action)
+    private async Task<HttpResponseMessage> HandleAsync(Func<Task<HttpResponseMessage>> action)
     {
         try
         {
@@ -122,10 +121,28 @@ internal class FrankfurterClient(
 
             return response;
         }
+        catch (Polly.Timeout.TimeoutRejectedException ex)
+        {
+            logger.LogError(ex, "Frankfurter API timeout: request did not complete within the allotted time. " +
+                                "Exception: {Message}", ex.Message);
+            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API don't respond", ex);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Frankfurter API: Frankfurter is not available. Exception: {Exception}", 
+                ex.Message);
+            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API is not available", ex);
+        }
+        catch (BrokenCircuitException ex)
+        {
+            logger.LogWarning(ex, "Frankfurter API circuit breaker is open. Requests are temporarily blocked.");
+            return HttpProviderException.Throw<HttpResponseMessage>(
+                "Frankfurter API is currently unavailable due to repeated failures. Please try again later.", ex);
+        }
         catch (Exception ex)
         {
-            logger.LogError("Frankfurter request failed! Exception: {Exception}", ex);
-            throw;
+            logger.LogError(ex, "Frankfurter API: request failed! Exception: {Exception}", ex.Message);
+            return HttpProviderException.Throw<HttpResponseMessage>("Frankfurter API unreachable or request malformed", ex);
         }
     }
     
