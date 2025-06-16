@@ -101,7 +101,7 @@ jobs:
           dotnet build ./src/currency-converter.sln --configuration Release --no-restore
           
       - name: Start Currency API & WireMock
-        run: make integration_tests_up IMAGE_TAG=${{ env.IMAGE_TAG }}
+        run: make integration_tests_up IMAGE_TAG=${{ needs.build.outputs.image_tag }}
 
       - name: Run Integration Tests
         run: make test CATEGORY=Integration
