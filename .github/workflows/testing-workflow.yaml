@@ -1,5 +1,5 @@
 name: Testing
-run-name: Testing workflow
+run-name: 💡 Unit & Integration testing
 on:
   push:
     branches: [ test ]
