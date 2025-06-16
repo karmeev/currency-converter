@@ -1,5 +1,5 @@
-name: 🚀 Release build and tag
-run-name: 🚀 Release build and tag ${{ github.ref_name }}
+name: Release
+run-name: 🚀 Release build and tag
 
 on:
   push:
@@ -48,6 +48,9 @@ jobs:
   tag:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
