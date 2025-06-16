@@ -2,22 +2,21 @@
 
 ---
 
-### :memo: Step 0. Postman
-First, you need to download the postman collection. It contains endpoints for further interaction with the API.
-The repository contains two versions of collections according to Postman. You can choose either one.
+### :memo: Step 0: Postman Setup
+Start by downloading the [Postman collection](./../resources) provided in the repository. It includes all available endpoints for interacting with the API.
+Two collection formats are included—feel free to use the one that suits your Postman version.
 
-### :lock: Step 1. Login & Refresh Token
-To make a request to protected endpoints, you need to get a token. To do this, you need to make a login request, 
-which returns an access token.
-If the protected endpoints returns 401, you need to make a refresh token request, which will provide a new access token.
+### :lock: Step 1: Authentication
+To access protected endpoints, you'll first need to authenticate via the login endpoint, which returns an access token.
+If you receive a `401 Unauthorized` response, use the refresh token endpoint to obtain a new access token.
 > [!TIP]
-> Postman automatically sets an access token for login and refresh token requests
+> Postman will automatically apply the latest access token from your login or refresh requests.
 
-### :fire: Step 2. Interact (Enjoy)
-Now you can use the API...
+### :fire: Step 2: Use the API
+You're now ready to explore and interact with the API!
 
 > [!IMPORTANT]  
-> Some endpoints have RBAC restrictions. To access them, log in as an admin
+> Some endpoints are restricted by RBAC (Role-Based Access Control). Admin login is required to access them.
 
 #### Test Credentials:
 
