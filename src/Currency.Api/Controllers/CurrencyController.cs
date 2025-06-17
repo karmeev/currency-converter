@@ -20,9 +20,9 @@ public class CurrencyController(ICurrencyFacade facade) : ControllerBase
     }
 
     [HttpGet("latest")]
-    public async Task<IActionResult> GetLatestExchangeRatesAsync([FromQuery] string currency = "EUR")
+    public async Task<IActionResult> GetLatestExchangeRatesAsync([FromQuery] string @base = "EUR")
     {
-        var response = await facade.RetrieveLatestExchangeRatesAsync(currency, HttpContext.RequestAborted);
+        var response = await facade.RetrieveLatestExchangeRatesAsync(@base, HttpContext.RequestAborted);
         return Ok(response);
     }
     

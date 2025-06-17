@@ -91,7 +91,7 @@ internal class FrankfurterClient(
         {
             var ex = new InvalidOperationException("Deserialization resulted in null.");
             logger.LogError(ex, "Frankfurter API: Deserialization resulted in null.");
-            throw new HttpProviderException("Frankfurter API: Unexpected response", ex);
+            throw new HttpProviderException("Frankfurter API: Unexpected response", HttpStatusCode.BadGateway, ex);
         }
 
         return result;
@@ -118,6 +118,11 @@ internal class FrankfurterClient(
             {
                 logger.LogWarning("Frankfurter request failed with status code {StatusCode}", response.StatusCode);
             }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new HttpProviderException("Frankfurter API: NotFound", HttpStatusCode.NotFound);
+            }
             
             response.EnsureSuccessStatusCode();
 
@@ -129,7 +134,8 @@ internal class FrankfurterClient(
             {
                 logger.LogWarning(bce, "Frankfurter API circuit breaker is open. Requests are temporarily blocked.");
                 throw new HttpProviderException(
-                    "Frankfurter API is currently unavailable due to repeated failures. Please try again later.", bce);
+                    "Frankfurter API is currently unavailable due to repeated failures. Please try again later.",
+                    HttpStatusCode.BadGateway, bce);
             }
 
             logger.LogWarning(ex, "Frankfurter request failed due to network or non-success HTTP code.");
@@ -139,7 +145,7 @@ internal class FrankfurterClient(
         {
             logger.LogError(ex, "Frankfurter API timeout: request did not complete within the allotted time. " +
                                 "Exception: {Message}", ex.Message);
-            throw new HttpProviderException("Frankfurter API don't respond", ex);
+            throw new HttpProviderException("Frankfurter API don't respond", HttpStatusCode.BadGateway, ex);
         }
     }
     
