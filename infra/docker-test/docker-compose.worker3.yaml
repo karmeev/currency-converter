@@ -1,9 +1,9 @@
 name: worker-node-3
 services:
   api:
-    image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
+    image: ghcr.io/karmeev/currency-api:v0.0.3
     environment:
-      - APP_VERSION=${APP_VERSION}
+      - APP_VERSION=0.0.3
     networks:
       - currency_network
     volumes:
