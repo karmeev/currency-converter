@@ -32,9 +32,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
         <Content Update="appsettings.Development.json" CopyToOutputDirectory="Always" />
         <Content Update="appsettings.Production.json" CopyToOutputDirectory="Always" />
         <Content Update="appsettings.Test.json" CopyToOutputDirectory="Always" />

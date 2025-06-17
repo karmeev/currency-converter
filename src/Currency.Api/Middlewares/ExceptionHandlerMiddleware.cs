@@ -43,10 +43,10 @@ public class ExceptionHandlerMiddleware
     {
         Log(context, ex);
         
-        context.Response.StatusCode = (int)HttpStatusCode.FailedDependency;
+        context.Response.StatusCode = (int)ex.StatusCode;
         await context.Response.WriteAsJsonAsync(new ErrorResponseScheme
         {
-            Error = ErrorMessage.FailedDependency,
+            Error = ErrorMessage.InvalidExternalApiResponse,
             Message = ex.Message,
             Details = BuildDetails(context, ex)
         });
