@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using Currency.Infrastructure.Contracts.Integrations.Providers.Base.Exceptions;
 using Currency.Infrastructure.Integrations.Providers.Frankfurter.Responses;
 using Microsoft.Extensions.Logging;
