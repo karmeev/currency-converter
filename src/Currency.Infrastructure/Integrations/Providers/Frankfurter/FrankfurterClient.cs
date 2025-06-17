@@ -34,7 +34,7 @@ internal class FrankfurterClient(
 
         WithTelemetry(uri);
         logger.LogInformation("Requesting latest exchange rate from Frankfurter. Base: {Currency}, URI: {Uri}", 
-            currency, uri);
+            currency, uri.ToString());
 
         var response = await HandleAsync(async () => await client.GetAsync(uri, token));
         return await ReadAndDeserializeAsync<GetLatestExchangeRateResponse>(response.Content, token);
@@ -70,7 +70,7 @@ internal class FrankfurterClient(
         
         WithTelemetry(uri);
         logger.LogInformation("Requesting exchange rates history from Frankfurter. Base: {Currency}, URI: {Uri}, " +
-                              "start: {start:yyyy-MM-dd}, end: {end:yyyy-MM-dd}", currency, start, end, uri);
+                              "start: {start:yyyy-MM-dd}, end: {end:yyyy-MM-dd}", currency, uri.ToString(), start, end);
         
         var response = await HandleAsync(async () => await client.GetAsync(uri, token));
         return await ReadAndDeserializeAsync<GetExchangeRatesHistoryResponse>(response.Content, token);
@@ -140,12 +140,6 @@ internal class FrankfurterClient(
             logger.LogError(ex, "Frankfurter API timeout: request did not complete within the allotted time. " +
                                 "Exception: {Message}", ex.Message);
             throw new HttpProviderException("Frankfurter API don't respond", ex);
-        }
-        catch (BrokenCircuitException ex)
-        {
-            logger.LogWarning(ex, "Frankfurter API circuit breaker is open. Requests are temporarily blocked.");
-            throw new HttpProviderException(
-                "Frankfurter API is currently unavailable due to repeated failures. Please try again later.", ex);
         }
     }
     

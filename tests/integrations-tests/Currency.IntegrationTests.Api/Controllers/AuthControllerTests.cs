@@ -12,9 +12,10 @@ public class AuthControllerTests
     private HttpClient _client;
 
     [SetUp]
-    public void Setup()
+    public async Task Setup()
     {
         _client = ApiTestFixture.Client;
+        await Task.Delay(2000);
     }
 
     [Test]
@@ -62,7 +63,11 @@ public class AuthControllerTests
         {
             try
             {
-                var task = Task.Run(async () => await _client.PostAsJsonAsync("/api/v1/Auth/login", request));
+                var task = Task.Run(async () =>
+                {
+                    var response = await _client.PostAsJsonAsync("/api/v1/Auth/login", request);
+                    if (response.StatusCode ==  HttpStatusCode.TooManyRequests) Assert.Pass();
+                });
                 requestTasks.Add(task);
             }
             catch {}

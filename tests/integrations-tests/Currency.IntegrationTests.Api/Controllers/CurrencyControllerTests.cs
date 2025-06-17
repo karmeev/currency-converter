@@ -16,6 +16,8 @@ public class CurrencyControllerTests
     {
         _client = ApiTestFixture.Client;
         
+        await Task.Delay(2000);
+        
         var request = new LoginRequest
         {
             Username = "test-user",

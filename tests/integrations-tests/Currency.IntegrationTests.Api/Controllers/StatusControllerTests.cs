@@ -15,6 +15,7 @@ public class StatusControllerTests
     public async Task Setup()
     {
         _client = ApiTestFixture.Client;
+        await Task.Delay(2000);
         
         var request = new LoginRequest
         {
