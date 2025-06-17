@@ -18,6 +18,8 @@ internal class AuthFacade(
     {
         ct.ThrowIfCancellationRequested();
         
+        logger.LogInformation("started; start login. User: {name}", request.Username);
+        
         var validationResult = AuthValidator.Validate(request.Username, request.Password);
         if (!validationResult.IsValid) return AuthResponse.Error(validationResult.Message);
 
@@ -34,6 +36,7 @@ internal class AuthFacade(
         }
         catch (NotFoundException)
         {
+            logger.LogWarning("failed; User not found or credentials incorrect. Username: {name}", request.Username);
             return AuthResponse.Error("Incorrect credentials");
         }
     }
@@ -46,7 +49,7 @@ internal class AuthFacade(
         var refreshToken = await tokenService.GetRefreshTokenAsync(token, ct);
         if (!refreshToken.Verified)
         {
-            logger.LogWarning("Refresh token is not verified: {token}", token);
+            logger.LogWarning("completed; Refresh token is not verified: {token}", token);
             return AuthResponse.Error("Refresh token is not verified");
         }
 
