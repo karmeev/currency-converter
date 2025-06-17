@@ -70,6 +70,12 @@ internal static class ExchangeRatesValidator
         }
 
         var hasBanned = false;
+
+        if (request.FromCurrency == request.ToCurrency)
+        {
+            validationErrors.Add($"You can not use a same currency for conversion.");
+        }
+        
         if (bannedCurrencies.Contains(request.FromCurrency))
         {
             validationErrors.Add($"{request.FromCurrency}: currency are not allowed.");

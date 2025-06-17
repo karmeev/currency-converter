@@ -4,36 +4,36 @@ services:
     container_name: api-instance-1
     image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:
-      - key_protection_volume:/root/.aspnet/DataProtection-Keys
+      - key_protection_volume:/DataProtection-Keys
       - ./configs/appsettings.json:/app/appsettings.json
 
   api-2:
     container_name: api-instance-2
     image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:
-      - key_protection_volume:/root/.aspnet/DataProtection-Keys
+      - key_protection_volume:/DataProtection-Keys
       - ./configs/appsettings.json:/app/appsettings.json
 
   api-3:
     container_name: api-instance-3
     image: ghcr.io/karmeev/currency-api:${IMAGE_TAG}
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
     networks:
       - currency_network
     volumes:
-      - key_protection_volume:/root/.aspnet/DataProtection-Keys
+      - key_protection_volume:/DataProtection-Keys
       - ./configs/appsettings.json:/app/appsettings.json
         
 networks:

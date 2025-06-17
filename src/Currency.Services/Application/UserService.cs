@@ -18,7 +18,9 @@ internal class UserService(
         try
         {
             var user = await usersRepository.GetUserByUsernameAsync(model, token);
-            return secretHasher.Verify(model.Password, user.Password) ? user : null;
+            var isCredentialsVerified = secretHasher.Verify(model.Password, user.Password);
+            if (!isCredentialsVerified) return NotFoundException.Throw<User>("Credentials not verified");
+            return user;
         }
         catch (NotFoundException ex)
         {
