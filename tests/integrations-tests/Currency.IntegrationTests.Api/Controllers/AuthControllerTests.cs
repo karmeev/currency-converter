@@ -12,9 +12,10 @@ public class AuthControllerTests
     private HttpClient _client;
 
     [SetUp]
-    public void Setup()
+    public async Task Setup()
     {
         _client = ApiTestFixture.Client;
+        await Task.Delay(2000);
     }
 
     [Test]

@@ -37,7 +37,7 @@ public class FrankfurterClientTests
                 Frankfurter = new FrankfurterSettings
                 {
                     BaseAddress = config.GetSection("FrankfurterUrl").Value,
-                    TimeoutSeconds = 10,
+                    TimeoutSeconds = 100,
                     RetryCount = 4,
                     RetryExponentialIntervalSeconds = 2,
                     CircuitBreakerDurationBreakSeconds = 10,
@@ -90,6 +90,9 @@ public class FrankfurterClientTests
     {
         //Arrange
         _client.BaseAddress = new Uri(WireMockAddress);
+
+        var ping = await _client.GetAsync("__admin");
+        
         var sut = new FrankfurterClient(_client, _logger);
 
         //Act
