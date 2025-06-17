@@ -49,7 +49,7 @@ public static class Registry
                 .SingleInstance();
         }
         
-        if (settings.ExchangeRatesHistoryWorkers > 0)
+        if (settings.CurrencyConversionWorkers > 0)
         {
             var currencyConversionCapacity = new BoundedChannelOptions(100);
             container.Register(_ => Channel.CreateBounded<CurrencyConversion>(currencyConversionCapacity))
@@ -61,7 +61,7 @@ public static class Registry
                 .SingleInstance();
         }
         
-        if (settings.ExchangeRatesHistoryWorkers > 0)
+        if (settings.ExchangeRatesWorkers > 0)
         {
             var exchangeRatesCapacity = new BoundedChannelOptions(100);
             container.Register(_ => Channel.CreateBounded<ExchangeRates>(exchangeRatesCapacity))
