@@ -1,12 +1,12 @@
 using Currency.Common.Pagination;
 using Currency.Common.Providers;
 using Currency.Data.Contracts;
+using Currency.Domain.Extensions;
+using Currency.Domain.Rates;
 using Currency.Facades.Contracts;
-using Currency.Facades.Contracts.Dtos;
 using Currency.Facades.Contracts.Exceptions;
 using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Contracts.Responses;
-using Currency.Facades.Converters;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
 using Currency.Services.Contracts.Domain;
@@ -53,10 +53,9 @@ internal class CurrencyFacade(
         
         var existedHistory = await exchangeRatesService.GetExistedRatesHistory(
             request.Currency, request.StartDate, request.EndDate, request.Page, request.PageSize, ct);
-        if (existedHistory.Count > 0)
+        if (existedHistory.Any())
         {
-            var existedParts = DtoConverter.ConvertToRatesHistoryPartDto(existedHistory);
-            var existedPage = PagedList<RatesHistoryPartDto>.Create(existedParts, 
+            var existedPage = PagedList<ExchangeRatesHistoryPart>.Create(existedHistory, 
                 request.Page, request.PageSize);
             
             return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, 
@@ -71,8 +70,8 @@ internal class CurrencyFacade(
         
         await publisherService.Publish(history, ct);
         
-        var parts = DtoConverter.ConvertToRatesHistoryPartDto(history);
-        var page = PagedList<RatesHistoryPartDto>.CreateFromRaw(parts, request.Page, 
+        var parts = history.ToPartOfHistory();
+        var page = PagedList<ExchangeRatesHistoryPart>.CreateFromRaw(parts, request.Page, 
             request.PageSize);
         
         return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, page);

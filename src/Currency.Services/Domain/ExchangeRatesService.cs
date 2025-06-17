@@ -30,7 +30,7 @@ public class ExchangeRatesService(
         return history;
     }
 
-    public async Task<List<ExchangeRateEntry>> GetExistedRatesHistory(string currency, DateTime start, DateTime end,
+    public async Task<IEnumerable<ExchangeRatesHistoryPart>> GetExistedRatesHistory(string currency, DateTime start, DateTime end,
         int page, int size, CancellationToken ct = default)
     {
         var key = $"{ProvidersConst.Frankfurter}:{currency}:{start:yyyyMMddHHmmss}:{end:yyyyMMddHHmmss}";
