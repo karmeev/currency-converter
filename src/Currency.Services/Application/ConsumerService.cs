@@ -4,6 +4,7 @@ using Autofac;
 using Currency.Domain.Operations;
 using Currency.Domain.Rates;
 using Currency.Services.Application.Consumers.Base;
+using Currency.Services.Application.Settings;
 using Currency.Services.Contracts.Application;
 using Microsoft.Extensions.Logging;
 
@@ -11,111 +12,96 @@ namespace Currency.Services.Application;
 
 internal class ConsumerService(
     ILifetimeScope lifetimeScope,
+    ServicesSettings settings,
+    ILogger<ConsumerService> logger,
     Channel<ExchangeRatesHistory> exchangeRatesHistoryChannel,
     Channel<CurrencyConversion> currencyConversionChannel,
     Channel<ExchangeRates> exchangeRatesChannel): IDisposable, IConsumerService
 {
+    private bool _disposed;
+    private SemaphoreSlim _limiter = new(10);
     private readonly CancellationTokenSource _cts = new();
-    private readonly SemaphoreSlim _limiter = new(10);
     private readonly ConcurrentQueue<ExchangeRatesHistory> _historyQueue = new();
     private readonly ConcurrentQueue<CurrencyConversion> _currencyConversionQueue = new();
     private readonly ConcurrentQueue<ExchangeRates> _exchangeRatesQueue = new();
     
     public void Start()
     {
-        Task.Run(() => ReceiveHistoryMessage(_cts.Token));
-        Task.Run(() => ReceiveCurrencyConversionMessage(_cts.Token));
-        Task.Run(() => ReceiveExchangeRatesMessage(_cts.Token));
-        
-        for (var i = 0; i < 2; i++)
+        try
         {
-            Task.Run(() => ConsumeHistory(_cts.Token));
-        }
-        
-        for (var i = 0; i < 2; i++)
-        {
-            Task.Run(() => ConsumeCurrencyConversion(_cts.Token));
-        }
-        
-        for (var i = 0; i < 2; i++)
-        {
-            Task.Run(() => ConsumeExchangeRates(_cts.Token));
-        }
-    }
-    
-    private async Task ReceiveHistoryMessage(CancellationToken token)
-    {
-        await foreach (var message in exchangeRatesHistoryChannel.Reader.ReadAllAsync(token))
-        {
-            await _limiter.WaitAsync(token);
-            _historyQueue.Enqueue(message);
-        }
-    }
-    
-    private async Task ReceiveCurrencyConversionMessage(CancellationToken token)
-    {
-        await foreach (var message in currencyConversionChannel.Reader.ReadAllAsync(token))
-        {
-            await _limiter.WaitAsync(token);
-            _currencyConversionQueue.Enqueue(message);
-        }
-    }
-    
-    private async Task ReceiveExchangeRatesMessage(CancellationToken token)
-    {
-        await foreach (var message in exchangeRatesChannel.Reader.ReadAllAsync(token))
-        {
-            await _limiter.WaitAsync(token);
-            _exchangeRatesQueue.Enqueue(message);
-        }
-    }
+            _limiter = new SemaphoreSlim(settings.Worker.Bandwidth);
+            var historyWorkers = settings.Worker.ExchangeRatesHistoryWorkers;
+            var conversionWorkers = settings.Worker.CurrencyConversionWorkers;
+            var ratesWorkers = settings.Worker.ExchangeRatesWorkers;
 
-    private async Task ConsumeHistory(CancellationToken token)
-    {
-        while (!token.IsCancellationRequested)
-        {
-            if (_historyQueue.TryDequeue(out var message))
+            if (historyWorkers > 0)
             {
-                await HandleAsync(async () =>
+                StartReceiver(exchangeRatesHistoryChannel, _historyQueue, _cts.Token);
+                for (var i = 0; i < historyWorkers; i++)
                 {
-                    await using var scope = lifetimeScope.BeginLifetimeScope();
-                    var consumer = scope.Resolve<IConsumer<ExchangeRatesHistory>>();
-                    await consumer.Consume(message, token);
-                });
+                    StartConsumer(_historyQueue, _cts.Token);
+                }
             }
+
+            if (conversionWorkers > 0)
+            {
+                StartReceiver(currencyConversionChannel, _currencyConversionQueue, _cts.Token);
+                for (var i = 0; i < conversionWorkers; i++)
+                {
+                    StartConsumer(_currencyConversionQueue, _cts.Token);
+                }
+            }
+
+            if (ratesWorkers > 0)
+            {
+                StartReceiver(exchangeRatesChannel, _exchangeRatesQueue, _cts.Token);
+                for (var i = 0; i < ratesWorkers; i++)
+                {
+                    StartConsumer(_exchangeRatesQueue, _cts.Token);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An exception was encountered during startup workers");
         }
     }
     
-    private async Task ConsumeCurrencyConversion(CancellationToken token)
+    private Task StartReceiver<T>(Channel<T> channel, ConcurrentQueue<T> queue, CancellationToken token)
     {
-        while (!token.IsCancellationRequested)
+        return Task.Run(async () =>
         {
-            if (_currencyConversionQueue.TryDequeue(out var message))
+            await foreach (var message in channel.Reader.ReadAllAsync(token))
             {
-                await HandleAsync(async () =>
-                {
-                    await using var scope = lifetimeScope.BeginLifetimeScope();
-                    var consumer = scope.Resolve<IConsumer<CurrencyConversion>>();
-                    await consumer.Consume(message, token);
-                });
+                await _limiter.WaitAsync(token);
+                queue.Enqueue(message);
             }
-        }
+        }, token);
     }
     
-    private async Task ConsumeExchangeRates(CancellationToken token)
+    private Task StartConsumer<T>(ConcurrentQueue<T> queue, CancellationToken token)
     {
-        while (!token.IsCancellationRequested)
+        return Task.Run(async () =>
         {
-            if (_exchangeRatesQueue.TryDequeue(out var message))
+            while (!token.IsCancellationRequested)
             {
-                await HandleAsync(async () =>
+                if (queue.IsEmpty)
                 {
-                    await using var scope = lifetimeScope.BeginLifetimeScope();
-                    var consumer = scope.Resolve<IConsumer<ExchangeRates>>();
-                    await consumer.Consume(message, token);
-                });
+                    await Task.Delay(settings.Worker.ConsumeDelayInMilliseconds, token);
+                    continue;
+                }
+                
+                if (queue.TryDequeue(out var message))
+                {
+                    await HandleAsync(async () =>
+                    {
+                        await using var scope = lifetimeScope.BeginLifetimeScope();
+                        var consumer = scope.Resolve<IConsumer<T>>();
+                        await consumer.Consume(message, token);
+                    });
+                }
             }
-        }
+        }, token);
     }
 
     private async Task HandleAsync(Func<Task> consume)
@@ -126,7 +112,6 @@ internal class ConsumerService(
         }
         catch (Exception ex)
         {
-            var logger = lifetimeScope.Resolve<ILogger<ConsumerService>>();
             logger.LogError(ex, "Unhandled consumer error: {message}", ex.Message);
         }
         finally
@@ -137,6 +122,8 @@ internal class ConsumerService(
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         _cts.Cancel();
         DisposeQueues();
         _limiter.Dispose();

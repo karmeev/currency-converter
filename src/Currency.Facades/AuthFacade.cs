@@ -28,10 +28,10 @@ internal class AuthFacade(
         {
             var user = await userService.GetUserAsync(model, ct);
             
-            var (tokenModel, claims) = tokenService.GenerateTokens(user, ct);
+            var tokenModel = tokenService.GenerateTokens(user, ct);
             await tokenService.AddRefreshTokenAsync(tokenModel.RefreshToken, user.Id, ct);
 
-            return new AuthResponse(claims, tokenModel.AccessToken, tokenModel.RefreshToken,
+            return AuthResponse.Success(tokenModel.AccessToken, tokenModel.RefreshToken,
                 tokenModel.ExpiresAt);
         }
         catch (NotFoundException)
@@ -46,6 +46,7 @@ internal class AuthFacade(
         ct.ThrowIfCancellationRequested();
         
         if (string.IsNullOrEmpty(token)) return AuthResponse.Error("Invalid refresh token");
+
         var refreshToken = await tokenService.GetRefreshTokenAsync(token, ct);
         if (!refreshToken.Verified)
         {
@@ -56,8 +57,8 @@ internal class AuthFacade(
         var user = await userService.TryGetUserByIdAsync(refreshToken.UserId, ct);
         if (user is null) return AuthResponse.Error("User not found");
 
-        var (accessToken, claims) = tokenService.GenerateAccessToken(user, ct);
+        var accessToken = tokenService.GenerateAccessToken(user, ct);
 
-        return new AuthResponse(claims, accessToken.Token, token, accessToken.ExpiresAt);
+        return AuthResponse.Success(accessToken.Token, token, accessToken.ExpiresAt);
     }
 }

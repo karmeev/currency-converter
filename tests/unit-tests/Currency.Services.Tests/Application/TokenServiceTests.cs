@@ -24,7 +24,7 @@ public class TokenServiceTests
     {
         _mockJwtTokenGenerator = new Mock<IJwtTokenGenerator>();
         _mockAuthRepository = new Mock<IAuthRepository>();
-        _settings = new ServicesSettings { RefreshTokenTtlInDays = 7 };
+        _settings = new ServicesSettings(new WorkerSettings()) { RefreshTokenTtlInDays = 7 };
     }
 
     [Test]
@@ -43,13 +43,12 @@ public class TokenServiceTests
 
         var sut = new TokenService(_settings, _mockJwtTokenGenerator.Object, _mockAuthRepository.Object);
 
-        var (result, resultClaims) = sut.GenerateTokens(FakeModels.GenerateFakeUser(), CancellationToken.None);
+        var result = sut.GenerateTokens(FakeModels.GenerateFakeUser(), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
             Assert.That(result.AccessToken, Is.Not.Null.Or.Empty);
             Assert.That(result.RefreshToken, Is.Not.Null.Or.Empty);
-            Assert.That(resultClaims, Is.Not.Null.And.Not.Empty);
         });
 
         Test.CompleteTest();
@@ -68,12 +67,11 @@ public class TokenServiceTests
 
         var sut = new TokenService(_settings, _mockJwtTokenGenerator.Object, _mockAuthRepository.Object);
 
-        var (result, resultClaims) = sut.GenerateAccessToken(FakeModels.GenerateFakeUser(), CancellationToken.None);
+        var result = sut.GenerateAccessToken(FakeModels.GenerateFakeUser(), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
             Assert.That(result.Token, Is.Not.Null.Or.Empty);
-            Assert.That(resultClaims, Is.Not.Null.And.Not.Empty);
         });
 
         Test.CompleteTest();

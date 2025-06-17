@@ -8,7 +8,9 @@ public class InfrastructureSettings(
     IOptionsMonitor<FrankfurterSettings> frank)
 {
     public JwtSettings JwtSettings => jwt.CurrentValue;
+    
     public RedisSettings RedisSettings => redis.CurrentValue;
+    
     public IntegrationsSettings Integrations => new()
     {
         Frankfurter = frank.CurrentValue

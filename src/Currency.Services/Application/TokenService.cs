@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Currency.Data.Contracts;
 using Currency.Domain.Login;
 using Currency.Domain.Users;
@@ -13,9 +12,9 @@ internal class TokenService(
     IJwtTokenGenerator tokenGenerator,
     IAuthRepository authRepository) : ITokenService
 {
-    public (Tokens, IEnumerable<Claim>) GenerateTokens(User user, CancellationToken ct)
+    public Tokens GenerateTokens(User user, CancellationToken ct)
     {
-        var (accessToken, claims) = GenerateAccessToken(user, ct);
+        var accessToken = GenerateAccessToken(user, ct);
         var refreshToken = tokenGenerator.CreateRefreshToken(user.Username);
 
         var tokens = new Tokens
@@ -24,16 +23,16 @@ internal class TokenService(
             ExpiresAt = accessToken.ExpiresAt,
             RefreshToken = refreshToken
         };
-        return (tokens, claims);
+        return tokens;
     }
 
-    public (AccessToken, IEnumerable<Claim>) GenerateAccessToken(User user, CancellationToken ct)
+    public AccessToken GenerateAccessToken(User user, CancellationToken ct)
     {
         var claims = tokenGenerator.BuildClaims(user.Id,
             user.Username, user.Role);
         var accessToken = tokenGenerator.CreateAccessToken(claims);
 
-        return (accessToken, claims);
+        return accessToken;
     }
 
     public async Task<RefreshToken> GetRefreshTokenAsync(string refreshToken, CancellationToken ct)

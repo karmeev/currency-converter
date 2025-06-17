@@ -9,8 +9,10 @@ public class PublisherService(ILifetimeScope scope) : IPublisherService
     public async Task Publish<T>(T message, CancellationToken token)
     {
         if (token.IsCancellationRequested) return;
-        
-        var channel = scope.Resolve<ChannelWriter<T>>();
-        await channel.WriteAsync(message, CancellationToken.None);
+
+        if (scope.TryResolve<ChannelWriter<T>>(out var channel))
+        {
+            await channel.WriteAsync(message, CancellationToken.None);
+        }
     }
 }

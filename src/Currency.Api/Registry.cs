@@ -1,4 +1,5 @@
 using Autofac;
+using Currency.Api.Settings;
 using Currency.Data.Settings;
 using Currency.Infrastructure.Settings;
 using Currency.Services.Application.Settings;
@@ -8,11 +9,11 @@ namespace Currency.Api;
 
 public static class Registry
 {
-    public static void RegisterDependencies(ContainerBuilder container)
+    public static void RegisterDependencies(ContainerBuilder container, StartupSettings settings)
     {
         PopulateSettings(container);
         Facades.Registry.RegisterDependencies(container);
-        Services.Registry.RegisterDependencies(container);
+        Services.Registry.RegisterDependencies(container, settings.ServicesSettings);
         Data.Registry.RegisterDependencies(container);
         Infrastructure.Registry.RegisterDependencies(container);
     }
@@ -20,9 +21,13 @@ public static class Registry
     private static void PopulateSettings(ContainerBuilder container)
     {
         //static: Refresh Token is long-lived often
-        container.Register(c => new ServicesSettings
+        container.Register(c =>
         {
-            RefreshTokenTtlInDays = c.Resolve<IOptions<JwtSettings>>().Value.RefreshTokenTtlInDays,
+            var workers = c.Resolve<IOptions<WorkerSettings>>().Value;
+            return new ServicesSettings(workers)
+            {
+                RefreshTokenTtlInDays = c.Resolve<IOptions<JwtSettings>>().Value.RefreshTokenTtlInDays,
+            };
         }).As<ServicesSettings>().SingleInstance();
 
         container.RegisterType<InfrastructureSettings>()

@@ -23,7 +23,8 @@ builder.Services.AddThirdPartyApis(settings);
 builder.Services.AddHostedService<ConsumersStartupBackgroundService>();
 
 builder.Host.AddLogger(builder.Services, settings);
-builder.Host.ConfigureContainer<ContainerBuilder>(Registry.RegisterDependencies);
+builder.Host.ConfigureContainer<ContainerBuilder>(container => 
+    Registry.RegisterDependencies(container, settings));
 
 var app = builder.Build();
 app.UseHttpsRedirection();

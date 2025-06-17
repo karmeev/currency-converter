@@ -102,16 +102,18 @@ internal class RedisContext(
 
     private IDatabase GetDatabase(string key)
     {
-        if (key.StartsWith(EntityPrefix.AuthPrefix)) 
+        var span = key.AsSpan();
+
+        if (span.StartsWith(EntityPrefix.AuthPrefix.AsSpan()))
             return connection.GetDatabase(Settings.RefreshTokensDatabaseNumber);
-        
-        if (key.StartsWith(EntityPrefix.RatesHistoryPrefix)) 
+
+        if (span.StartsWith(EntityPrefix.RatesHistoryPrefix.AsSpan()))
             return connection.GetDatabase(Settings.ExchangeRatesHistoryDatabaseNumber);
-        
-        if (key.StartsWith(EntityPrefix.ExchangeRatesPrefix)) 
+
+        if (span.StartsWith(EntityPrefix.ExchangeRatesPrefix.AsSpan()))
             return connection.GetDatabase(Settings.ExchangeRatesDatabaseNumber);
-        
-        if (key.StartsWith(EntityPrefix.UserPrefix)) 
+
+        if (span.StartsWith(EntityPrefix.UserPrefix.AsSpan()))
             return connection.GetDatabase(15);
 
         return connection.GetDatabase(14);
