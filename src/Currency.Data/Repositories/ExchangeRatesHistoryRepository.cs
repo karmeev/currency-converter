@@ -1,8 +1,10 @@
 using Currency.Data.Contracts;
 using Currency.Data.Contracts.Entries;
 using Currency.Data.Contracts.Exceptions;
+using Currency.Data.Extensions;
 using Currency.Data.Locks;
 using Currency.Data.Settings;
+using Currency.Domain.Rates;
 using Currency.Infrastructure.Contracts.Databases.Base;
 using Currency.Infrastructure.Contracts.Databases.Redis;
 using Currency.Infrastructure.Contracts.Databases.Redis.Entries;
@@ -18,7 +20,7 @@ internal class ExchangeRatesHistoryRepository(
 {
     private static string Prefix => EntityPrefix.RatesHistoryPrefix;
 
-    public async Task<IEnumerable<ExchangeRateEntry>> GetRateHistoryPagedAsync(string id, int pageNumber, int pageSize, 
+    public async Task<IEnumerable<ExchangeRatesHistoryPart>> GetRateHistoryPagedAsync(string id, int pageNumber, int pageSize, 
         CancellationToken token)
     {
         if (token.IsCancellationRequested) return [];
@@ -30,12 +32,12 @@ internal class ExchangeRatesHistoryRepository(
         var rawValues = await context.SortedSetRangeByRankAsync(key, start, stop, ascending: true);
         if (rawValues.Length == 0) return [];
 
-        var result = rawValues
+        var entries = rawValues
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .Select(json => JsonConvert.DeserializeObject<ExchangeRateEntry>(json)!)
             .ToList();
 
-        return result;
+        return DataConverter.ToPartOfHistory(entries);
     }
     
     public async Task AddRateHistory(string id, IEnumerable<ExchangeRateEntry> rates, CancellationToken token)

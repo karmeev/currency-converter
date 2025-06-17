@@ -81,7 +81,7 @@ public class ExchangeRatesServiceTests
         var size = 10;
         var key = $"{ProvidersConst.Frankfurter}:{currency}:{start:yyyyMMddHHmmss}:{end:yyyyMMddHHmmss}";
 
-        var entries = new List<ExchangeRateEntry>
+        var entries = new List<ExchangeRatesHistoryPart>
         {
             new() { Date = start.AddDays(-1) },  // outside range
             new() { Date = start.AddDays(1) },   // inside range
@@ -95,7 +95,7 @@ public class ExchangeRatesServiceTests
         var result = await _sut.GetExistedRatesHistory(currency, start, end, page, size);
 
         // Assert
-        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result.ToList(), Has.Count.EqualTo(1));
         Assert.That(result.First().Date, Is.InRange(start, end));
     }
 }

@@ -1,12 +1,12 @@
 using Currency.Common.Pagination;
 using Currency.Common.Providers;
 using Currency.Data.Contracts;
+using Currency.Domain.Extensions;
+using Currency.Domain.Rates;
 using Currency.Facades.Contracts;
-using Currency.Facades.Contracts.Dtos;
 using Currency.Facades.Contracts.Exceptions;
 using Currency.Facades.Contracts.Requests;
 using Currency.Facades.Contracts.Responses;
-using Currency.Facades.Converters;
 using Currency.Facades.Validators;
 using Currency.Services.Contracts.Application;
 using Currency.Services.Contracts.Domain;
@@ -25,6 +25,8 @@ internal class CurrencyFacade(
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        
+        logger.LogInformation("started; retrieve latests exchange rates for currency: {currency}", currency);
 
         Validate(currency);
         
@@ -36,11 +38,12 @@ internal class CurrencyFacade(
                 existedRates.Rates);
         }
         
-        logger.LogInformation("Cache is empty; Making a live request with currency: {currency}", currency);
+        logger.LogInformation("processing; Cache is empty; Making a live request with currency: {currency}", currency);
         var rates = await exchangeRatesService.GetLatestExchangeRates(currency, ct);
         
         await publisherService.Publish(rates, ct);
         
+        logger.LogInformation("completed; retrieve latests exchange rates for currency: {currency}", currency);
         return new RetrieveLatestRatesResponse(rates.CurrentCurrency, rates.LastDate, rates.Rates);
     }
 
@@ -49,21 +52,23 @@ internal class CurrencyFacade(
     {
         ct.ThrowIfCancellationRequested();
         
+        logger.LogInformation("started; get exchange rates history for: {currency}", request.Currency);
+        
         Validate(request);
         
         var existedHistory = await exchangeRatesService.GetExistedRatesHistory(
             request.Currency, request.StartDate, request.EndDate, request.Page, request.PageSize, ct);
-        if (existedHistory.Count > 0)
+        if (existedHistory.Any())
         {
-            var existedParts = DtoConverter.ConvertToRatesHistoryPartDto(existedHistory);
-            var existedPage = PagedList<RatesHistoryPartDto>.Create(existedParts, 
+            var existedPage = PagedList<ExchangeRatesHistoryPart>.Create(existedHistory, 
                 request.Page, request.PageSize);
             
             return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, 
                 existedPage);
         }
         
-        logger.LogInformation("Cache is empty; Making a live request with currency: {currency}, Period: {start} - {end}", 
+        logger.LogInformation("processing; Cache is empty; Making a live request with currency: {currency}, " +
+                              "Period: {start} - {end}", 
             request.Currency, request.StartDate, request.EndDate);
         
         var history = await exchangeRatesService.GetExchangeRatesHistory(request.Currency, 
@@ -71,9 +76,11 @@ internal class CurrencyFacade(
         
         await publisherService.Publish(history, ct);
         
-        var parts = DtoConverter.ConvertToRatesHistoryPartDto(history);
-        var page = PagedList<RatesHistoryPartDto>.CreateFromRaw(parts, request.Page, 
+        var parts = history.ToPartOfHistory();
+        var page = PagedList<ExchangeRatesHistoryPart>.CreateFromRaw(parts, request.Page, 
             request.PageSize);
+        
+        logger.LogInformation("completed; get exchange rates history for: {currency}", request.Currency);
         
         return new GetHistoryResponse(request.Currency, request.StartDate, request.EndDate, page);
     }
@@ -82,6 +89,9 @@ internal class CurrencyFacade(
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        
+        logger.LogInformation("started; convert from: {currency} to: {currency2}", request.FromCurrency,
+            request.ToCurrency);
         
         Validate(request);
         
@@ -92,7 +102,7 @@ internal class CurrencyFacade(
             return new ConvertToCurrencyResponse(convertedCurrency.Amount, convertedCurrency.ToCurrency);
         }
         
-        logger.LogInformation("Cache is empty; Making a live request with currencies: {currency1} - {currency2}", 
+        logger.LogInformation("processing; Cache is empty; Making a live request with currencies: {currency1} - {currency2}", 
             request.FromCurrency, request.ToCurrency);
         
         var result = await converterService.ConvertToCurrency(request.Amount, request.FromCurrency, 
@@ -100,14 +110,18 @@ internal class CurrencyFacade(
         
         await publisherService.Publish(result, ct);
         
+        logger.LogInformation("completed; convert from: {currency} to: {currency2}", request.FromCurrency,
+            request.ToCurrency);
+        
         return new ConvertToCurrencyResponse(result.Amount, result.ToCurrency);
     }
 
-    private static void Validate<TRequest>(TRequest request)
+    private void Validate<TRequest>(TRequest request)
     {
         var result = ExchangeRatesValidator.ValidateRequest(request, out var validationErrors);
         if (!result.IsValid)
         {
+            logger.LogInformation("failed; validation failed for request: {req}", request.GetType());
             ValidationException.Throw(result.Message, validationErrors);
         }
     }
