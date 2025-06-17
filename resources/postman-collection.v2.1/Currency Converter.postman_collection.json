@@ -46,7 +46,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"username\": \"test-user\",\n    \"password\": \"my_test_password\"\n}",
+									"raw": "{\n    \"username\": \"test-admin\",\n    \"password\": \"my_test_password_2\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -134,7 +134,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{url}}/api/v1/currency/latest?base=USD",
+									"raw": "{{url}}/api/v1/currency/latest?base=EUR",
 									"host": [
 										"{{url}}"
 									],
@@ -147,7 +147,7 @@
 									"query": [
 										{
 											"key": "base",
-											"value": "USD",
+											"value": "EUR",
 											"description": "(default) EUR"
 										}
 									]
