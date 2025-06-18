@@ -6,6 +6,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
+      - Services__Workers__Bandwidth=10
+      - Services__Workers__ConsumeDelayInMilliseconds=500
+      - Services__Workers__ExchangeRatesHistoryWorkers=10
+      - Services__Workers__CurrencyConversionWorkers=4
+      - Services__Workers__ExchangeRatesWorkers=7
     networks:
       - currency_network
     volumes:
@@ -18,6 +23,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
+      - Services__Workers__Bandwidth=10
+      - Services__Workers__ConsumeDelayInMilliseconds=1000
+      - Services__Workers__ExchangeRatesHistoryWorkers=3
+      - Services__Workers__CurrencyConversionWorkers=10
+      - Services__Workers__ExchangeRatesWorkers=10
     networks:
       - currency_network
     volumes:
@@ -30,6 +40,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - APP_VERSION=${APP_VERSION}
+      - Services__Workers__Bandwidth=10
+      - Services__Workers__ConsumeDelayInMilliseconds=10
+      - Services__Workers__ExchangeRatesHistoryWorkers=10
+      - Services__Workers__CurrencyConversionWorkers=10
+      - Services__Workers__ExchangeRatesWorkers=10
     networks:
       - currency_network
     volumes:

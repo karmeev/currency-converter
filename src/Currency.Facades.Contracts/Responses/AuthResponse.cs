@@ -1,32 +1,27 @@
-using System.Security.Claims;
-
 namespace Currency.Facades.Contracts.Responses;
 
-public class AuthResponse
+public struct AuthResponse
 {
-    private AuthResponse()
-    {
-    }
-
-    public AuthResponse(IEnumerable<Claim> claims, string accessToken, string refreshToken, DateTime expiresAt)
-    {
-        Success = true;
-        ErrorMessage = string.Empty;
-        Claims = claims;
-        AccessToken = accessToken;
-        RefreshToken = refreshToken;
-        ExpiresAt = expiresAt;
-    }
-
-    public bool Success { get; private init; }
+    public bool Succeeded { get; private init; }
     public string ErrorMessage { get; private init; }
-    public IEnumerable<Claim> Claims { get; init; }
-    public string AccessToken { get; init; }
-    public string RefreshToken { get; init; }
-    public DateTime ExpiresAt { get; init; }
+    public string AccessToken { get; private init; }
+    public string RefreshToken { get; private init; }
+    public DateTime ExpiresAt { get; private init; }
 
+    public static AuthResponse Success(string accessToken, string refreshToken, DateTime expiresAt)
+    {
+        return new AuthResponse
+        {
+            Succeeded = true, 
+            ErrorMessage = string.Empty,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            ExpiresAt = expiresAt
+        };
+    }
+    
     public static AuthResponse Error(string errorMessage)
     {
-        return new AuthResponse { Success = false, ErrorMessage = errorMessage ?? "Unexpected error" };
+        return new AuthResponse { Succeeded = false, ErrorMessage = errorMessage ?? "Unexpected error" };
     }
 }

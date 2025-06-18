@@ -6,6 +6,7 @@ using Currency.Api.Schemes;
 using Currency.Api.Settings;
 using Currency.Data.Settings;
 using Currency.Infrastructure.Settings;
+using Currency.Services.Application.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
@@ -21,62 +22,49 @@ public static class ApiConfiguration
 {
     public static void AddSettings(this IServiceCollection services, string env, out StartupSettings settings)
     {
-        var appVersion = Environment.GetEnvironmentVariable("APP_VERSION");
-        if (string.IsNullOrEmpty(appVersion))
-        {
-            appVersion = "1.0.0";
-        }
+        var appVersion = Environment.GetEnvironmentVariable("APP_VERSION") ?? "1.0.0";
+
         var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", false, true)
-            .AddJsonFile($"appsettings.{env}.json", true, true)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
-        
+
         services.AddOptions();
+
+        // Bind options
         services.Configure<RateLimiterSettings>(configuration.GetSection("RateLimiter"));
+        services.Configure<WorkerSettings>(configuration.GetSection("Services:Workers"));
         services.Configure<JwtSettings>(configuration.GetSection("Infrastructure:Jwt"));
         services.Configure<RedisSettings>(configuration.GetSection("Infrastructure:Redis"));
         services.Configure<FrankfurterSettings>(configuration.GetSection("Infrastructure:Integrations:Frankfurter"));
         services.Configure<CacheSettings>(configuration.GetSection("Data:Cache"));
 
-        var loggerSettings = new LoggerSettings();
-        var loggerSection = "Infrastructure:Logger";
-        loggerSettings.ConsoleTemplate = configuration.GetSection($"{loggerSection}:Console:ConsoleTemplate").Value;
-        loggerSettings.ElasticIndexFormat = configuration.GetSection($"{loggerSection}:ELK:IndexFormat").Value;
-        loggerSettings.ElasticEndpoint = configuration.GetSection($"{loggerSection}:ELK:LogEndpoint").Value;
-        loggerSettings.JaegerEndpoint = configuration.GetSection($"{loggerSection}:Telemetry:JaegerEndpoint").Value;
-
-        if (Enum.TryParse<LogEventLevel>(configuration.GetSection($"{loggerSection}:Console:LogLevel").Value, 
-                out var consoleLogLevel))
+        // Logger settings
+        var loggerSection = configuration.GetSection("Infrastructure:Logger");
+        var loggerSettings = new LoggerSettings
         {
-            loggerSettings.ConsoleLogLevel = consoleLogLevel;
-        }
-        else
-        {
-            loggerSettings.ConsoleLogLevel = LogEventLevel.Information;
-        }
-        
-        if (Enum.TryParse<LogEventLevel>(configuration.GetSection($"{loggerSection}:ELK:LogLevel").Value, 
-                out var elkLogLevel))
-        {
-            loggerSettings.ElasticLogLevel = elkLogLevel;
-        }
-        else
-        {
-            loggerSettings.ElasticLogLevel = LogEventLevel.Information;
-        }
-        
-        loggerSettings.AppVersion = appVersion;
-        loggerSettings.Application = configuration.GetSection("Application").Value;
-        loggerSettings.Environment = env;
-        loggerSettings.EnableDebugOptions = configuration.GetSection($"{loggerSection}:EnableDebugOptions").
-            Value?.ToLower() == "true";
-        loggerSettings.DisableLogger = configuration.GetSection($"{loggerSection}:DisableLogger").
-            Value?.ToLower() == "true";
+            ConsoleTemplate = loggerSection.GetValue<string>("Console:ConsoleTemplate"),
+            ElasticIndexFormat = loggerSection.GetValue<string>("ELK:IndexFormat"),
+            ElasticEndpoint = loggerSection.GetValue<string>("ELK:LogEndpoint"),
+            JaegerEndpoint = loggerSection.GetValue<string>("Telemetry:JaegerEndpoint"),
+            ConsoleLogLevel = Enum.TryParse(loggerSection.GetValue<string>("Console:LogLevel"),
+                out LogEventLevel consoleLevel)
+                ? consoleLevel
+                : LogEventLevel.Information,
+            ElasticLogLevel = Enum.TryParse(loggerSection.GetValue<string>("ELK:LogLevel"), out LogEventLevel elkLevel)
+                ? elkLevel
+                : LogEventLevel.Information,
+            AppVersion = appVersion,
+            Application = configuration.GetValue<string>("Application"),
+            Environment = env,
+            EnableDebugOptions = loggerSection.GetValue<bool>("EnableDebugOptions"),
+            DisableLogger = loggerSection.GetValue<bool>("DisableLogger")
+        };
 
         settings = new StartupSettings
         {
-            DataProtectionKeysDirectory = configuration.GetSection("DataProtectionKeysDirectory").Value,
+            DataProtectionKeysDirectory = configuration.GetValue<string>("DataProtectionKeysDirectory"),
             RateLimiter = configuration.GetSection("RateLimiter").Get<RateLimiterSettings>(),
             Jwt = configuration.GetSection("Infrastructure:Jwt").Get<JwtSettings>(),
             Integrations = new IntegrationsSettings
@@ -84,7 +72,9 @@ public static class ApiConfiguration
                 Frankfurter = configuration.GetSection("Infrastructure:Integrations:Frankfurter")
                     .Get<FrankfurterSettings>()
             },
-            LoggerSettings = loggerSettings
+            LoggerSettings = loggerSettings,
+            ServicesSettings = new ServicesSettings(configuration.GetSection("Services:Workers")
+                .Get<WorkerSettings>())
         };
     }
 
@@ -123,7 +113,7 @@ public static class ApiConfiguration
                         QueueLimit = config.QueueLimit
                     });
             });
-            
+
             options.RejectionStatusCode = config.RejectionStatusCode;
         });
         return;
@@ -133,7 +123,7 @@ public static class ApiConfiguration
             return context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
         }
     }
-    
+
     public static void AddIdentity(this IServiceCollection services, StartupSettings startupSettings)
     {
         var settings = startupSettings.Jwt;
@@ -147,10 +137,7 @@ public static class ApiConfiguration
 
         services.AddAuthorization();
 
-        services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        services.AddAuthentication(options => { options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -164,7 +151,7 @@ public static class ApiConfiguration
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero
                 };
-                
+
                 options.Events = new JwtBearerEvents
                 {
                     OnChallenge = async context =>
