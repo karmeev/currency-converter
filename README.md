@@ -26,11 +26,7 @@ A high-performance currency conversion API built with ASP.NET Core, Redis, ELK, 
    ```
 
 4. [Explore API](docs/Explore%20API.md)
-
-> [!WARNING]  
-> Launching an API with multiple instances has a strong CPU consumption. This reduces performance.
-Be careful with the launch and terminate instances if there are performance issues.
-
+   
 ### Assumptions Made
 - 🔁 **Frankfurter API** is always available and responds within acceptable latency bounds. \
   The system uses retry and circuit breaker policies, but it's assumed downtime is rare and short-lived.
